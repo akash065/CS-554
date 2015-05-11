@@ -1,0 +1,1429 @@
+2015-05-03 09:33:05,071+0000 INFO  Loader JAVA Oracle Corporation Java HotSpot(TM) 64-Bit Server VM 1.7.0_51
+2015-05-03 09:33:05,075+0000 INFO  Loader VERSION Swift trunk git-rev: 2d334140f2c288e5aeb3d354de0ecda35b4b3aac heads/master 6130 (modified locally)
+2015-05-03 09:33:05,076+0000 INFO  Loader RUN_ID run013
+2015-05-03 09:33:05,076+0000 INFO  Loader ARGUMENTS [-runid, run013, -logfile, /home/ubuntu/data/swift-cloud-tutorial/wcount/run013/swift.log, wordcount.swift]
+2015-05-03 09:33:05,076+0000 INFO  Loader MAX_HEAP 954728448
+2015-05-03 09:33:05,076+0000 INFO  Loader GLOBUS_HOSTNAME ip-172-31-2-223
+2015-05-03 09:33:05,076+0000 INFO  Loader CWD /home/ubuntu/data/swift-cloud-tutorial/wcount/.
+2015-05-03 09:33:05,079+0000 DEBUG Loader SWIFT_CONFIGURATION 
+[D] /usr/local/bin/swift-trunk/etc/swift.conf
+[R] swift.conf
+[C] <Command Line>
+{
+    TCPPortRange: "50000, 50100"                            # [D] line 27
+    alwaysTransferWrapperLog: true                          # [R] line 42
+    executionRetries: 0                                     # [R] line 39
+    fileOperationsThrottle: 8                               # [D] line 121
+    fileTransfersThrottle: 4                                # [D] line 107
+    hostJobSubmitThrottle: 2                                # [D] line 95
+    jobSubmitThrottle: 4                                    # [D] line 83
+    keepSiteDir: true                                       # [R] line 40
+    lazyErrors: false                                       # [R] line 38
+    logProvenance: false                                    # [D] line 200
+    maxForeachThreads: 16384                                # [D] line 194
+    providerStagingPinSwiftFiles: false                     # [R] line 41
+    replicationEnabled: false                               # [D] line 146
+    replicationLimit: 3                                     # [D] line 157
+    replicationMinQueueTime: 60                             # [D] line 153
+	site {
+		cloud-static {
+            app.ALL.executable: "*"                         # [R] line 34
+			execution {
+                URL: "http://127.0.0.1:50010"               # [R] line 21
+                jobManager: "local:local"                   # [R] line 22
+				options {
+                    maxJobs: 10                             # [R] line 24
+                    tasksPerNode: 4                         # [R] line 25
+				}
+                type: "coaster-persistent"                  # [R] line 20
+			}
+            filesystem.type: "local"                        # [R] line 31
+            initialParallelTasks: 20                        # [R] line 29
+            maxParallelTasks: 20                            # [R] line 30
+            staging: "local"                                # [R] line 33
+            workDirectory: "/tmp/swiftwork"                 # [R] line 32
+		}
+		local {
+            app.ALL.executable: "*"                         # [R] line 15
+			execution {
+                URL: "localhost"                            # [R] line 10
+                type: "local"                               # [R] line 9
+			}
+			filesystem {
+                URL: "localhost"                            # [R] line 6
+                type: "local"                               # [R] line 5
+			}
+            initialParallelTasks: 31                        # [R] line 14
+            maxParallelTasks: 32                            # [R] line 13
+            workDirectory: "/tmp/ubuntu/swiftwork"          # [C]
+		}
+	}
+    sites: [cloud-static]                                   # [R] line 1
+    tracingEnabled: false                                   # [D] line 51
+}
+
+2015-05-03 09:33:05,081+0000 DEBUG textfiles BEGIN SWIFTSCRIPT:
+type file;
+
+app (file out, file log) count_words (file input, file wordcount_script)
+{
+  bash @wordcount_script @input stdout=@out stderr=@log;
+}
+
+app (file out, file log) merge (file s[], file merge_script)
+{
+  bash @merge_script filenames(s) stdout=@out stderr=@log;
+}
+
+file wordcount_script <"wordcount.sh">;
+file merge_script     <"merge.sh">; 
+file chunks[]    <filesys_mapper; location="inputs", suffix=".txt">;
+file wcounter[];
+
+foreach chunk,i in chunks
+{
+  file wc_out <single_file_mapper; file=strcat("output/sim_",i,".out")>;
+  file wc_log <single_file_mapper; file=strcat("output/sim_",i,".log")>;
+  (wc_out, wc_log) = count_words (chunks[i], wordcount_script);
+  wcounter[i] = wc_out;
+}
+
+file merge_out<"output/final_output.out">;
+file merge_log<"output/final_output.log">;
+(merge_out, merge_log) = merge(wcounter, merge_script);
+
+
+
+2015-05-03 09:33:05,081+0000 DEBUG textfiles END SWIFTSCRIPT:
+2015-05-03 09:33:05,082+0000 INFO  Loader wordcount.swift: source file is new. Recompiling.
+2015-05-03 09:33:07,080+0000 INFO  Loader RUN_START
+2015-05-03 09:33:07,085+0000 INFO  SwiftExecutor swift.home = /usr/local/bin/swift-trunk
+2015-05-03 09:33:07,163+0000 INFO  AbstractScheduler Setting resources to: {cloud-static=cloud-static}
+2015-05-03 09:33:07,173+0000 INFO  GlobalSubmitQueue No global submit throttle set. Using default (1024)
+2015-05-03 09:33:07,187+0000 INFO  LateBindingScheduler jobs queued: 0
+2015-05-03 09:33:07,188+0000 INFO  LateBindingScheduler jobs queued: 0
+2015-05-03 09:33:07,223+0000 DEBUG swift PROCEDURE line=8 thread=R-3 name=merge
+2015-05-03 09:33:07,227+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 75497472, UsedHeap: 21072200, JVMThreads: 14
+2015-05-03 09:33:07,227+0000 DEBUG swift FOREACH_IT_START line=18 thread=R-2-0
+2015-05-03 09:33:07,227+0000 DEBUG swift SCOPE thread=R-2-0
+2015-05-03 09:33:07,227+0000 INFO  RuntimeStats$ProgressTicker 
+2015-05-03 09:33:07,228+0000 DEBUG swift PROCEDURE line=3 thread=R-2-0-2 name=count_words
+2015-05-03 09:33:07,229+0000 DEBUG swift FOREACH_IT_START line=18 thread=R-2-1
+2015-05-03 09:33:07,229+0000 DEBUG swift SCOPE thread=R-2-1
+2015-05-03 09:33:07,229+0000 DEBUG swift FOREACH_IT_START line=18 thread=R-2x2
+2015-05-03 09:33:07,229+0000 DEBUG swift SCOPE thread=R-2x2
+2015-05-03 09:33:07,230+0000 DEBUG swift FOREACH_IT_START line=18 thread=R-2-3
+2015-05-03 09:33:07,230+0000 DEBUG swift SCOPE thread=R-2-3
+2015-05-03 09:33:07,230+0000 DEBUG swift FOREACH_IT_START line=18 thread=R-2-4
+2015-05-03 09:33:07,230+0000 DEBUG swift SCOPE thread=R-2-4
+2015-05-03 09:33:07,230+0000 DEBUG swift FOREACH_IT_START line=18 thread=R-2-5
+2015-05-03 09:33:07,230+0000 DEBUG swift SCOPE thread=R-2-5
+2015-05-03 09:33:07,231+0000 DEBUG swift FOREACH_IT_START line=18 thread=R-2-6
+2015-05-03 09:33:07,231+0000 DEBUG swift SCOPE thread=R-2-6
+2015-05-03 09:33:07,232+0000 DEBUG swift FOREACH_IT_START line=18 thread=R-2-7
+2015-05-03 09:33:07,232+0000 DEBUG swift SCOPE thread=R-2-7
+2015-05-03 09:33:07,232+0000 DEBUG swift FOREACH_IT_START line=18 thread=R-2-8
+2015-05-03 09:33:07,232+0000 DEBUG swift SCOPE thread=R-2-8
+2015-05-03 09:33:07,233+0000 DEBUG swift FOREACH_IT_START line=18 thread=R-2-9
+2015-05-03 09:33:07,233+0000 DEBUG swift SCOPE thread=R-2-9
+2015-05-03 09:33:07,233+0000 DEBUG swift FOREACH_IT_START line=18 thread=R-2-10
+2015-05-03 09:33:07,233+0000 DEBUG swift SCOPE thread=R-2-10
+2015-05-03 09:33:07,233+0000 DEBUG swift PROCEDURE line=3 thread=R-2-1-2 name=count_words
+2015-05-03 09:33:07,235+0000 DEBUG swift PROCEDURE line=3 thread=R-2x3 name=count_words
+2015-05-03 09:33:07,237+0000 DEBUG swift PROCEDURE line=3 thread=R-2-6-2 name=count_words
+2015-05-03 09:33:07,237+0000 DEBUG swift PROCEDURE line=3 thread=R-2-7-2 name=count_words
+2015-05-03 09:33:07,237+0000 DEBUG swift PROCEDURE line=3 thread=R-2-8-2 name=count_words
+2015-05-03 09:33:07,238+0000 DEBUG swift PROCEDURE line=3 thread=R-2-9-2 name=count_words
+2015-05-03 09:33:07,238+0000 DEBUG swift PROCEDURE line=3 thread=R-2-10-2 name=count_words
+2015-05-03 09:33:07,238+0000 DEBUG swift PROCEDURE line=3 thread=R-2-5-2 name=count_words
+2015-05-03 09:33:07,236+0000 DEBUG swift PROCEDURE line=3 thread=R-2-3-2 name=count_words
+2015-05-03 09:33:07,236+0000 DEBUG swift PROCEDURE line=3 thread=R-2-4-2 name=count_words
+2015-05-03 09:33:07,239+0000 DEBUG swift THREAD_ASSOCIATION jobid=bash-s7nmebzl thread=R-2-0-2 host=cloud-static replicationGroup=null
+2015-05-03 09:33:07,240+0000 DEBUG swift JOB_START jobid=bash-s7nmebzl tr=bash arguments=[wordcount.sh, inputs/output-ah.txt] tmpdir=wordcount-run013/jobs/s/bash-s7nmebzl host=cloud-static
+2015-05-03 09:33:07,245+0000 DEBUG swift THREAD_ASSOCIATION jobid=bash-t7nmebzl thread=R-2-1-2 host=cloud-static replicationGroup=null
+2015-05-03 09:33:07,245+0000 DEBUG swift JOB_START jobid=bash-t7nmebzl tr=bash arguments=[wordcount.sh, inputs/output-aj.txt] tmpdir=wordcount-run013/jobs/t/bash-t7nmebzl host=cloud-static
+2015-05-03 09:33:07,246+0000 DEBUG swift THREAD_ASSOCIATION jobid=bash-u7nmebzl thread=R-2x3 host=cloud-static replicationGroup=null
+2015-05-03 09:33:07,246+0000 DEBUG swift JOB_START jobid=bash-u7nmebzl tr=bash arguments=[wordcount.sh, inputs/output-ai.txt] tmpdir=wordcount-run013/jobs/u/bash-u7nmebzl host=cloud-static
+2015-05-03 09:33:07,247+0000 DEBUG swift THREAD_ASSOCIATION jobid=bash-v7nmebzl thread=R-2-6-2 host=cloud-static replicationGroup=null
+2015-05-03 09:33:07,248+0000 DEBUG swift JOB_START jobid=bash-v7nmebzl tr=bash arguments=[wordcount.sh, inputs/output-ad.txt] tmpdir=wordcount-run013/jobs/v/bash-v7nmebzl host=cloud-static
+2015-05-03 09:33:07,250+0000 INFO  Execute JOB_TASK jobid=bash-u7nmebzl taskid=urn:R-2x3-1414225985069 exec=/bin/bash dir=wordcount-run013/jobs/u/bash-u7nmebzl args=_swiftwrap.staging -e bash -out output/sim_2.out -err output/sim_2.log -i -d inputs|output -if inputs/output-ai.txt|wordcount.sh -of output/sim_2.log|output/sim_2.out -cf  -cdmfile  -status provider -a wordcount.sh inputs/output-ai.txt
+2015-05-03 09:33:07,254+0000 DEBUG swift THREAD_ASSOCIATION jobid=bash-x7nmebzl thread=R-2-7-2 host=cloud-static replicationGroup=null
+2015-05-03 09:33:07,255+0000 DEBUG swift JOB_START jobid=bash-x7nmebzl tr=bash arguments=[wordcount.sh, inputs/output-aa.txt] tmpdir=wordcount-run013/jobs/x/bash-x7nmebzl host=cloud-static
+2015-05-03 09:33:07,255+0000 INFO  Execute JOB_TASK jobid=bash-x7nmebzl taskid=urn:R-2-7-2-1414225985071 exec=/bin/bash dir=wordcount-run013/jobs/x/bash-x7nmebzl args=_swiftwrap.staging -e bash -out output/sim_7.out -err output/sim_7.log -i -d inputs|output -if inputs/output-aa.txt|wordcount.sh -of output/sim_7.out|output/sim_7.log -cf  -cdmfile  -status provider -a wordcount.sh inputs/output-aa.txt
+2015-05-03 09:33:07,257+0000 DEBUG swift THREAD_ASSOCIATION jobid=bash-y7nmebzl thread=R-2-8-2 host=cloud-static replicationGroup=null
+2015-05-03 09:33:07,257+0000 DEBUG swift JOB_START jobid=bash-y7nmebzl tr=bash arguments=[wordcount.sh, inputs/output-ak.txt] tmpdir=wordcount-run013/jobs/y/bash-y7nmebzl host=cloud-static
+2015-05-03 09:33:07,258+0000 INFO  Execute JOB_TASK jobid=bash-y7nmebzl taskid=urn:R-2-8-2-1414225985073 exec=/bin/bash dir=wordcount-run013/jobs/y/bash-y7nmebzl args=_swiftwrap.staging -e bash -out output/sim_8.out -err output/sim_8.log -i -d inputs|output -if inputs/output-ak.txt|wordcount.sh -of output/sim_8.log|output/sim_8.out -cf  -cdmfile  -status provider -a wordcount.sh inputs/output-ak.txt
+2015-05-03 09:33:07,258+0000 DEBUG swift THREAD_ASSOCIATION jobid=bash-z7nmebzl thread=R-2-9-2 host=cloud-static replicationGroup=null
+2015-05-03 09:33:07,259+0000 INFO  Execute JOB_TASK jobid=bash-t7nmebzl taskid=urn:R-2-1-2-1414225985074 exec=/bin/bash dir=wordcount-run013/jobs/t/bash-t7nmebzl args=_swiftwrap.staging -e bash -out output/sim_1.out -err output/sim_1.log -i -d inputs|output -if inputs/output-aj.txt|wordcount.sh -of output/sim_1.out|output/sim_1.log -cf  -cdmfile  -status provider -a wordcount.sh inputs/output-aj.txt
+2015-05-03 09:33:07,259+0000 DEBUG swift JOB_START jobid=bash-z7nmebzl tr=bash arguments=[wordcount.sh, inputs/output-ag.txt] tmpdir=wordcount-run013/jobs/z/bash-z7nmebzl host=cloud-static
+2015-05-03 09:33:07,259+0000 DEBUG swift THREAD_ASSOCIATION jobid=bash-08nmebzl thread=R-2-10-2 host=cloud-static replicationGroup=null
+2015-05-03 09:33:07,259+0000 DEBUG swift JOB_START jobid=bash-08nmebzl tr=bash arguments=[wordcount.sh, inputs/output-ac.txt] tmpdir=wordcount-run013/jobs/0/bash-08nmebzl host=cloud-static
+2015-05-03 09:33:07,260+0000 INFO  Execute JOB_TASK jobid=bash-z7nmebzl taskid=urn:R-2-9-2-1414225985076 exec=/bin/bash dir=wordcount-run013/jobs/z/bash-z7nmebzl args=_swiftwrap.staging -e bash -out output/sim_9.out -err output/sim_9.log -i -d inputs|output -if inputs/output-ag.txt|wordcount.sh -of output/sim_9.out|output/sim_9.log -cf  -cdmfile  -status provider -a wordcount.sh inputs/output-ag.txt
+2015-05-03 09:33:07,260+0000 INFO  Execute JOB_TASK jobid=bash-08nmebzl taskid=urn:R-2-10-2-1414225985078 exec=/bin/bash dir=wordcount-run013/jobs/0/bash-08nmebzl args=_swiftwrap.staging -e bash -out output/sim_10.out -err output/sim_10.log -i -d inputs|output -if inputs/output-ac.txt|wordcount.sh -of output/sim_10.log|output/sim_10.out -cf  -cdmfile  -status provider -a wordcount.sh inputs/output-ac.txt
+2015-05-03 09:33:07,260+0000 DEBUG swift THREAD_ASSOCIATION jobid=bash-28nmebzl thread=R-2-4-2 host=cloud-static replicationGroup=null
+2015-05-03 09:33:07,261+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-7-2-1414225985071 status=8
+2015-05-03 09:33:07,261+0000 DEBUG swift JOB_START jobid=bash-28nmebzl tr=bash arguments=[wordcount.sh, inputs/output-ab.txt] tmpdir=wordcount-run013/jobs/2/bash-28nmebzl host=cloud-static
+2015-05-03 09:33:07,262+0000 INFO  Execute JOB_TASK jobid=bash-28nmebzl taskid=urn:R-2-4-2-1414225985080 exec=/bin/bash dir=wordcount-run013/jobs/2/bash-28nmebzl args=_swiftwrap.staging -e bash -out output/sim_4.out -err output/sim_4.log -i -d inputs|output -if inputs/output-ab.txt|wordcount.sh -of output/sim_4.out|output/sim_4.log -cf  -cdmfile  -status provider -a wordcount.sh inputs/output-ab.txt
+2015-05-03 09:33:07,262+0000 DEBUG swift THREAD_ASSOCIATION jobid=bash-38nmebzl thread=R-2-5-2 host=cloud-static replicationGroup=null
+2015-05-03 09:33:07,263+0000 DEBUG swift JOB_START jobid=bash-38nmebzl tr=bash arguments=[wordcount.sh, inputs/output-af.txt] tmpdir=wordcount-run013/jobs/3/bash-38nmebzl host=cloud-static
+2015-05-03 09:33:07,263+0000 INFO  Execute JOB_TASK jobid=bash-38nmebzl taskid=urn:R-2-5-2-1414225985082 exec=/bin/bash dir=wordcount-run013/jobs/3/bash-38nmebzl args=_swiftwrap.staging -e bash -out output/sim_5.out -err output/sim_5.log -i -d inputs|output -if inputs/output-af.txt|wordcount.sh -of output/sim_5.out|output/sim_5.log -cf  -cdmfile  -status provider -a wordcount.sh inputs/output-af.txt
+2015-05-03 09:33:07,264+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2x3-1414225985069 status=8
+2015-05-03 09:33:07,264+0000 DEBUG swift THREAD_ASSOCIATION jobid=bash-18nmebzl thread=R-2-3-2 host=cloud-static replicationGroup=null
+2015-05-03 09:33:07,264+0000 DEBUG swift JOB_START jobid=bash-18nmebzl tr=bash arguments=[wordcount.sh, inputs/output-ae.txt] tmpdir=wordcount-run013/jobs/1/bash-18nmebzl host=cloud-static
+2015-05-03 09:33:07,265+0000 INFO  Execute JOB_TASK jobid=bash-18nmebzl taskid=urn:R-2-3-2-1414225985084 exec=/bin/bash dir=wordcount-run013/jobs/1/bash-18nmebzl args=_swiftwrap.staging -e bash -out output/sim_3.out -err output/sim_3.log -i -d inputs|output -if inputs/output-ae.txt|wordcount.sh -of output/sim_3.out|output/sim_3.log -cf  -cdmfile  -status provider -a wordcount.sh inputs/output-ae.txt
+2015-05-03 09:33:07,265+0000 INFO  Execute JOB_TASK jobid=bash-v7nmebzl taskid=urn:R-2-6-2-1414225985085 exec=/bin/bash dir=wordcount-run013/jobs/v/bash-v7nmebzl args=_swiftwrap.staging -e bash -out output/sim_6.out -err output/sim_6.log -i -d inputs|output -if inputs/output-ad.txt|wordcount.sh -of output/sim_6.out|output/sim_6.log -cf  -cdmfile  -status provider -a wordcount.sh inputs/output-ad.txt
+2015-05-03 09:33:07,266+0000 INFO  Execute JOB_TASK jobid=bash-s7nmebzl taskid=urn:R-2-0-2-1414225985086 exec=/bin/bash dir=wordcount-run013/jobs/s/bash-s7nmebzl args=_swiftwrap.staging -e bash -out output/sim_0.out -err output/sim_0.log -i -d inputs|output -if inputs/output-ah.txt|wordcount.sh -of output/sim_0.log|output/sim_0.out -cf  -cdmfile  -status provider -a wordcount.sh inputs/output-ah.txt
+2015-05-03 09:33:07,286+0000 INFO  AbstractCoasterChannel TCPChannel[client, http://127.0.0.1:50010] setting name to http://127.0.0.1:50010
+2015-05-03 09:33:07,293+0000 INFO  AbstractTCPChannel http://127.0.0.1:50010: channel started
+2015-05-03 09:33:07,296+0000 INFO  AbstractCoasterChannel Timeout check started for http://127.0.0.1:50010
+2015-05-03 09:33:07,299+0000 INFO  AbstractStreamCoasterChannel Using NIO sender for http://127.0.0.1:50010
+2015-05-03 09:33:07,319+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-8-2-1414225985073 status=8
+2015-05-03 09:33:07,319+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-1-2-1414225985074 status=8
+2015-05-03 09:33:07,320+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-9-2-1414225985076 status=8
+2015-05-03 09:33:07,320+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-10-2-1414225985078 status=8
+2015-05-03 09:33:07,320+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-4-2-1414225985080 status=8
+2015-05-03 09:33:07,321+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-5-2-1414225985082 status=8
+2015-05-03 09:33:07,321+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-3-2-1414225985084 status=8
+2015-05-03 09:33:07,321+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-6-2-1414225985085 status=8
+2015-05-03 09:33:07,322+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-0-2-1414225985086 status=8
+2015-05-03 09:33:07,415+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-7-2-1414225985071 status=1
+2015-05-03 09:33:07,415+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2x3-1414225985069 status=1
+2015-05-03 09:33:07,415+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-8-2-1414225985073 status=1
+2015-05-03 09:33:07,415+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-9-2-1414225985076 status=1
+2015-05-03 09:33:07,415+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-1-2-1414225985074 status=1
+2015-05-03 09:33:07,416+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-4-2-1414225985080 status=1
+2015-05-03 09:33:07,416+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-10-2-1414225985078 status=1
+2015-05-03 09:33:07,416+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-5-2-1414225985082 status=1
+2015-05-03 09:33:07,416+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-6-2-1414225985085 status=1
+2015-05-03 09:33:07,416+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-0-2-1414225985086 status=1
+2015-05-03 09:33:07,416+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-3-2-1414225985084 status=1
+2015-05-03 09:33:07,426+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-7-2-1414225985071 status=16 workerid=ip-172-31-28-214:000000
+2015-05-03 09:33:07,427+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-8-2-1414225985073 status=16 workerid=ip-172-31-18-166:000000
+2015-05-03 09:33:07,428+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2x3-1414225985069 status=16 workerid=ip-172-31-17-125:000000
+2015-05-03 09:33:07,429+0000 INFO  GetFileHandler Handler(tag: 22, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/inputs/output-aa.txt
+2015-05-03 09:33:07,434+0000 INFO  GetFileHandler Handler(tag: 22, GET) reader: LR-Handler(tag: 22, GET)
+2015-05-03 09:33:07,434+0000 INFO  GetFileHandler Handler(tag: 22, GET) sending length: 1000000000, 816317032
+2015-05-03 09:33:07,440+0000 INFO  ReadBuffer RB-LR-Handler(tag: 22, GET) will ask for 8 buffers for a size of 1000000000
+2015-05-03 09:33:07,441+0000 INFO  ReadBuffer RB-LR-Handler(tag: 22, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:33:07,441+0000 INFO  LocalIOProvider LR-Handler(tag: 22, GET) rbuf: RB-LR-Handler(tag: 22, GET)
+2015-05-03 09:33:07,441+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-9-2-1414225985076 status=16 workerid=ip-172-31-20-87:000000
+2015-05-03 09:33:07,442+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-1-2-1414225985074 status=16 workerid=ip-172-31-24-237:000000
+2015-05-03 09:33:07,442+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-4-2-1414225985080 status=16 workerid=ip-172-31-21-75:000000
+2015-05-03 09:33:07,443+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-10-2-1414225985078 status=16 workerid=ip-172-31-20-100:000000
+2015-05-03 09:33:07,444+0000 INFO  GetFileHandler Handler(tag: 29, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/inputs/output-aj.txt
+2015-05-03 09:33:07,444+0000 INFO  GetFileHandler Handler(tag: 29, GET) reader: LR-Handler(tag: 29, GET)
+2015-05-03 09:33:07,444+0000 INFO  GetFileHandler Handler(tag: 29, GET) sending length: 1000000000, 708447470
+2015-05-03 09:33:07,444+0000 INFO  ReadBuffer RB-LR-Handler(tag: 29, GET) will ask for 8 buffers for a size of 1000000000
+2015-05-03 09:33:07,444+0000 INFO  ReadBuffer RB-LR-Handler(tag: 29, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:33:07,444+0000 INFO  LocalIOProvider LR-Handler(tag: 29, GET) rbuf: RB-LR-Handler(tag: 29, GET)
+2015-05-03 09:33:07,445+0000 INFO  GetFileHandler Handler(tag: 30, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/inputs/output-ab.txt
+2015-05-03 09:33:07,445+0000 INFO  GetFileHandler Handler(tag: 30, GET) reader: LR-Handler(tag: 30, GET)
+2015-05-03 09:33:07,445+0000 INFO  GetFileHandler Handler(tag: 30, GET) sending length: 1000000000, 1777270644
+2015-05-03 09:33:07,445+0000 INFO  ReadBuffer RB-LR-Handler(tag: 30, GET) will ask for 8 buffers for a size of 1000000000
+2015-05-03 09:33:07,445+0000 INFO  ReadBuffer RB-LR-Handler(tag: 30, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:33:07,445+0000 INFO  LocalIOProvider LR-Handler(tag: 30, GET) rbuf: RB-LR-Handler(tag: 30, GET)
+2015-05-03 09:33:07,445+0000 INFO  GetFileHandler Handler(tag: 31, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/inputs/output-ai.txt
+2015-05-03 09:33:07,445+0000 INFO  GetFileHandler Handler(tag: 31, GET) reader: LR-Handler(tag: 31, GET)
+2015-05-03 09:33:07,446+0000 INFO  GetFileHandler Handler(tag: 31, GET) sending length: 1000000000, 1261419433
+2015-05-03 09:33:07,446+0000 INFO  ReadBuffer RB-LR-Handler(tag: 31, GET) will ask for 8 buffers for a size of 1000000000
+2015-05-03 09:33:07,446+0000 INFO  ReadBuffer RB-LR-Handler(tag: 31, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:33:07,446+0000 INFO  LocalIOProvider LR-Handler(tag: 31, GET) rbuf: RB-LR-Handler(tag: 31, GET)
+2015-05-03 09:33:07,446+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-5-2-1414225985082 status=16 workerid=ip-172-31-17-107:000000
+2015-05-03 09:33:07,448+0000 INFO  GetFileHandler Handler(tag: 33, GET) request complete; src=file://localhost//usr/local/bin/swift-trunk/libexec/_swiftwrap.staging
+2015-05-03 09:33:07,448+0000 INFO  GetFileHandler Handler(tag: 33, GET) reader: LR-Handler(tag: 33, GET)
+2015-05-03 09:33:07,448+0000 INFO  GetFileHandler Handler(tag: 33, GET) sending length: 6253, 238327081
+2015-05-03 09:33:07,448+0000 INFO  ReadBuffer RB-LR-Handler(tag: 33, GET) will ask for 1 buffers for a size of 6253
+2015-05-03 09:33:07,448+0000 INFO  ReadBuffer RB-LR-Handler(tag: 33, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:33:07,448+0000 INFO  LocalIOProvider LR-Handler(tag: 33, GET) rbuf: RB-LR-Handler(tag: 33, GET)
+2015-05-03 09:33:07,448+0000 INFO  GetFileHandler Handler(tag: 34, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/inputs/output-ac.txt
+2015-05-03 09:33:07,448+0000 INFO  GetFileHandler Handler(tag: 34, GET) reader: LR-Handler(tag: 34, GET)
+2015-05-03 09:33:07,448+0000 INFO  GetFileHandler Handler(tag: 34, GET) sending length: 1000000000, 191893170
+2015-05-03 09:33:07,448+0000 INFO  ReadBuffer RB-LR-Handler(tag: 34, GET) will ask for 8 buffers for a size of 1000000000
+2015-05-03 09:33:07,448+0000 INFO  ReadBuffer RB-LR-Handler(tag: 34, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:33:07,449+0000 INFO  LocalIOProvider LR-Handler(tag: 34, GET) rbuf: RB-LR-Handler(tag: 34, GET)
+2015-05-03 09:33:07,449+0000 INFO  GetFileHandler Handler(tag: 35, GET) request complete; src=file://localhost//usr/local/bin/swift-trunk/libexec/_swiftwrap.staging
+2015-05-03 09:33:07,449+0000 INFO  GetFileHandler Handler(tag: 35, GET) reader: LR-Handler(tag: 35, GET)
+2015-05-03 09:33:07,449+0000 INFO  GetFileHandler Handler(tag: 35, GET) sending length: 6253, 304041989
+2015-05-03 09:33:07,449+0000 INFO  ReadBuffer RB-LR-Handler(tag: 35, GET) will ask for 1 buffers for a size of 6253
+2015-05-03 09:33:07,449+0000 INFO  ReadBuffer RB-LR-Handler(tag: 35, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:33:07,449+0000 INFO  LocalIOProvider LR-Handler(tag: 35, GET) rbuf: RB-LR-Handler(tag: 35, GET)
+2015-05-03 09:33:07,451+0000 INFO  GetFileHandler Handler(tag: 33, GET) unregistering (last)
+2015-05-03 09:33:07,451+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:33:07,453+0000 INFO  GetFileHandler Handler(tag: 35, GET) unregistering (last)
+2015-05-03 09:33:07,453+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:33:07,454+0000 INFO  GetFileHandler Handler(tag: 37, GET) request complete; src=file://localhost//usr/local/bin/swift-trunk/libexec/_swiftwrap.staging
+2015-05-03 09:33:07,454+0000 INFO  GetFileHandler Handler(tag: 37, GET) reader: LR-Handler(tag: 37, GET)
+2015-05-03 09:33:07,454+0000 INFO  GetFileHandler Handler(tag: 37, GET) sending length: 6253, 127053182
+2015-05-03 09:33:07,454+0000 INFO  ReadBuffer RB-LR-Handler(tag: 37, GET) will ask for 1 buffers for a size of 6253
+2015-05-03 09:33:07,454+0000 INFO  ReadBuffer RB-LR-Handler(tag: 37, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:33:07,454+0000 INFO  LocalIOProvider LR-Handler(tag: 37, GET) rbuf: RB-LR-Handler(tag: 37, GET)
+2015-05-03 09:33:07,455+0000 INFO  GetFileHandler Handler(tag: 37, GET) unregistering (last)
+2015-05-03 09:33:07,455+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:33:07,456+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-6-2-1414225985085 status=16 workerid=ip-172-31-30-247:000000
+2015-05-03 09:33:07,456+0000 INFO  GetFileHandler Handler(tag: 40, GET) request complete; src=file://localhost//usr/local/bin/swift-trunk/libexec/_swiftwrap.staging
+2015-05-03 09:33:07,457+0000 INFO  GetFileHandler Handler(tag: 40, GET) reader: LR-Handler(tag: 40, GET)
+2015-05-03 09:33:07,457+0000 INFO  GetFileHandler Handler(tag: 40, GET) sending length: 6253, 1152836100
+2015-05-03 09:33:07,457+0000 INFO  ReadBuffer RB-LR-Handler(tag: 40, GET) will ask for 1 buffers for a size of 6253
+2015-05-03 09:33:07,457+0000 INFO  ReadBuffer RB-LR-Handler(tag: 40, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:33:07,457+0000 INFO  LocalIOProvider LR-Handler(tag: 40, GET) rbuf: RB-LR-Handler(tag: 40, GET)
+2015-05-03 09:33:07,457+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-0-2-1414225985086 status=16 workerid=ip-172-31-21-89:000000
+2015-05-03 09:33:07,458+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-3-2-1414225985084 status=16 workerid=ip-172-31-16-173:000000
+2015-05-03 09:33:07,458+0000 INFO  GetFileHandler Handler(tag: 43, GET) request complete; src=file://localhost//usr/local/bin/swift-trunk/libexec/_swiftwrap.staging
+2015-05-03 09:33:07,458+0000 INFO  GetFileHandler Handler(tag: 43, GET) reader: LR-Handler(tag: 43, GET)
+2015-05-03 09:33:07,458+0000 INFO  GetFileHandler Handler(tag: 43, GET) sending length: 6253, 1472301930
+2015-05-03 09:33:07,458+0000 INFO  ReadBuffer RB-LR-Handler(tag: 43, GET) will ask for 1 buffers for a size of 6253
+2015-05-03 09:33:07,458+0000 INFO  ReadBuffer RB-LR-Handler(tag: 43, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:33:07,458+0000 INFO  LocalIOProvider LR-Handler(tag: 43, GET) rbuf: RB-LR-Handler(tag: 43, GET)
+2015-05-03 09:33:07,459+0000 INFO  GetFileHandler Handler(tag: 44, GET) request complete; src=file://localhost//usr/local/bin/swift-trunk/libexec/_swiftwrap.staging
+2015-05-03 09:33:07,459+0000 INFO  GetFileHandler Handler(tag: 44, GET) reader: LR-Handler(tag: 44, GET)
+2015-05-03 09:33:07,459+0000 INFO  GetFileHandler Handler(tag: 44, GET) sending length: 6253, 754013237
+2015-05-03 09:33:07,459+0000 INFO  ReadBuffer RB-LR-Handler(tag: 44, GET) will ask for 1 buffers for a size of 6253
+2015-05-03 09:33:07,459+0000 INFO  ReadBuffer RB-LR-Handler(tag: 44, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:33:07,459+0000 INFO  LocalIOProvider LR-Handler(tag: 44, GET) rbuf: RB-LR-Handler(tag: 44, GET)
+2015-05-03 09:33:07,460+0000 INFO  GetFileHandler Handler(tag: 40, GET) unregistering (last)
+2015-05-03 09:33:07,460+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:33:07,460+0000 INFO  GetFileHandler Handler(tag: 43, GET) unregistering (last)
+2015-05-03 09:33:07,460+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:33:07,460+0000 INFO  GetFileHandler Handler(tag: 44, GET) unregistering (last)
+2015-05-03 09:33:07,461+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:33:07,471+0000 INFO  GetFileHandler Handler(tag: 45, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/wordcount.sh
+2015-05-03 09:33:07,471+0000 INFO  GetFileHandler Handler(tag: 45, GET) reader: LR-Handler(tag: 45, GET)
+2015-05-03 09:33:07,471+0000 INFO  GetFileHandler Handler(tag: 45, GET) sending length: 483, 914074262
+2015-05-03 09:33:07,471+0000 INFO  ReadBuffer RB-LR-Handler(tag: 45, GET) will ask for 1 buffers for a size of 483
+2015-05-03 09:33:07,471+0000 INFO  ReadBuffer RB-LR-Handler(tag: 45, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:33:07,471+0000 INFO  LocalIOProvider LR-Handler(tag: 45, GET) rbuf: RB-LR-Handler(tag: 45, GET)
+2015-05-03 09:33:07,472+0000 INFO  GetFileHandler Handler(tag: 45, GET) unregistering (last)
+2015-05-03 09:33:07,472+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:33:07,472+0000 INFO  GetFileHandler Handler(tag: 46, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/wordcount.sh
+2015-05-03 09:33:07,472+0000 INFO  GetFileHandler Handler(tag: 46, GET) reader: LR-Handler(tag: 46, GET)
+2015-05-03 09:33:07,472+0000 INFO  GetFileHandler Handler(tag: 46, GET) sending length: 483, 1335900256
+2015-05-03 09:33:07,472+0000 INFO  ReadBuffer RB-LR-Handler(tag: 46, GET) will ask for 1 buffers for a size of 483
+2015-05-03 09:33:07,473+0000 INFO  ReadBuffer RB-LR-Handler(tag: 46, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:33:07,473+0000 INFO  LocalIOProvider LR-Handler(tag: 46, GET) rbuf: RB-LR-Handler(tag: 46, GET)
+2015-05-03 09:33:07,473+0000 INFO  GetFileHandler Handler(tag: 46, GET) unregistering (last)
+2015-05-03 09:33:07,473+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:33:07,499+0000 INFO  GetFileHandler Handler(tag: 47, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/wordcount.sh
+2015-05-03 09:33:07,499+0000 INFO  GetFileHandler Handler(tag: 47, GET) reader: LR-Handler(tag: 47, GET)
+2015-05-03 09:33:07,499+0000 INFO  GetFileHandler Handler(tag: 47, GET) sending length: 483, 1834229236
+2015-05-03 09:33:07,499+0000 INFO  ReadBuffer RB-LR-Handler(tag: 47, GET) will ask for 1 buffers for a size of 483
+2015-05-03 09:33:07,499+0000 INFO  ReadBuffer RB-LR-Handler(tag: 47, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:33:07,499+0000 INFO  LocalIOProvider LR-Handler(tag: 47, GET) rbuf: RB-LR-Handler(tag: 47, GET)
+2015-05-03 09:33:07,499+0000 INFO  GetFileHandler Handler(tag: 47, GET) unregistering (last)
+2015-05-03 09:33:07,499+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:33:07,502+0000 INFO  GetFileHandler Handler(tag: 48, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/wordcount.sh
+2015-05-03 09:33:07,503+0000 INFO  GetFileHandler Handler(tag: 48, GET) reader: LR-Handler(tag: 48, GET)
+2015-05-03 09:33:07,503+0000 INFO  GetFileHandler Handler(tag: 48, GET) sending length: 483, 1397946732
+2015-05-03 09:33:07,503+0000 INFO  ReadBuffer RB-LR-Handler(tag: 48, GET) will ask for 1 buffers for a size of 483
+2015-05-03 09:33:07,503+0000 INFO  ReadBuffer RB-LR-Handler(tag: 48, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:33:07,503+0000 INFO  LocalIOProvider LR-Handler(tag: 48, GET) rbuf: RB-LR-Handler(tag: 48, GET)
+2015-05-03 09:33:07,504+0000 INFO  GetFileHandler Handler(tag: 49, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/wordcount.sh
+2015-05-03 09:33:07,504+0000 INFO  GetFileHandler Handler(tag: 49, GET) reader: LR-Handler(tag: 49, GET)
+2015-05-03 09:33:07,504+0000 INFO  GetFileHandler Handler(tag: 49, GET) sending length: 483, 115437565
+2015-05-03 09:33:07,504+0000 INFO  ReadBuffer RB-LR-Handler(tag: 49, GET) will ask for 1 buffers for a size of 483
+2015-05-03 09:33:07,504+0000 INFO  ReadBuffer RB-LR-Handler(tag: 49, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:33:07,504+0000 INFO  LocalIOProvider LR-Handler(tag: 49, GET) rbuf: RB-LR-Handler(tag: 49, GET)
+2015-05-03 09:33:07,505+0000 INFO  GetFileHandler Handler(tag: 48, GET) unregistering (last)
+2015-05-03 09:33:07,505+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:33:07,505+0000 INFO  GetFileHandler Handler(tag: 49, GET) unregistering (last)
+2015-05-03 09:33:07,505+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:33:07,506+0000 INFO  GetFileHandler Handler(tag: 50, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/inputs/output-ae.txt
+2015-05-03 09:33:07,506+0000 INFO  GetFileHandler Handler(tag: 50, GET) reader: LR-Handler(tag: 50, GET)
+2015-05-03 09:33:07,506+0000 INFO  GetFileHandler Handler(tag: 50, GET) sending length: 1000000000, 2080338238
+2015-05-03 09:33:07,506+0000 INFO  ReadBuffer RB-LR-Handler(tag: 50, GET) will ask for 8 buffers for a size of 1000000000
+2015-05-03 09:33:07,506+0000 INFO  ReadBuffer RB-LR-Handler(tag: 50, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:33:07,507+0000 INFO  LocalIOProvider LR-Handler(tag: 50, GET) rbuf: RB-LR-Handler(tag: 50, GET)
+2015-05-03 09:33:07,508+0000 INFO  GetFileHandler Handler(tag: 51, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/inputs/output-ak.txt
+2015-05-03 09:33:07,508+0000 INFO  GetFileHandler Handler(tag: 51, GET) reader: LR-Handler(tag: 51, GET)
+2015-05-03 09:33:07,508+0000 INFO  GetFileHandler Handler(tag: 51, GET) sending length: 400000000, 893722032
+2015-05-03 09:33:07,508+0000 INFO  ReadBuffer RB-LR-Handler(tag: 51, GET) will ask for 8 buffers for a size of 400000000
+2015-05-03 09:33:07,508+0000 INFO  ReadBuffer RB-LR-Handler(tag: 51, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:33:07,508+0000 INFO  LocalIOProvider LR-Handler(tag: 51, GET) rbuf: RB-LR-Handler(tag: 51, GET)
+2015-05-03 09:33:07,510+0000 INFO  GetFileHandler Handler(tag: 52, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/inputs/output-ag.txt
+2015-05-03 09:33:07,510+0000 INFO  GetFileHandler Handler(tag: 52, GET) reader: LR-Handler(tag: 52, GET)
+2015-05-03 09:33:07,511+0000 INFO  GetFileHandler Handler(tag: 52, GET) sending length: 1000000000, 653041275
+2015-05-03 09:33:07,511+0000 INFO  ReadBuffer RB-LR-Handler(tag: 52, GET) will ask for 8 buffers for a size of 1000000000
+2015-05-03 09:33:07,511+0000 INFO  ReadBuffer RB-LR-Handler(tag: 52, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:33:07,511+0000 INFO  LocalIOProvider LR-Handler(tag: 52, GET) rbuf: RB-LR-Handler(tag: 52, GET)
+2015-05-03 09:33:07,524+0000 INFO  GetFileHandler Handler(tag: 53, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/inputs/output-ah.txt
+2015-05-03 09:33:07,524+0000 INFO  GetFileHandler Handler(tag: 53, GET) reader: LR-Handler(tag: 53, GET)
+2015-05-03 09:33:07,524+0000 INFO  GetFileHandler Handler(tag: 53, GET) sending length: 1000000000, 1889126687
+2015-05-03 09:33:07,524+0000 INFO  ReadBuffer RB-LR-Handler(tag: 53, GET) will ask for 8 buffers for a size of 1000000000
+2015-05-03 09:33:07,524+0000 INFO  ReadBuffer RB-LR-Handler(tag: 53, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:33:07,524+0000 INFO  LocalIOProvider LR-Handler(tag: 53, GET) rbuf: RB-LR-Handler(tag: 53, GET)
+2015-05-03 09:33:07,525+0000 INFO  GetFileHandler Handler(tag: 54, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/inputs/output-ad.txt
+2015-05-03 09:33:07,526+0000 INFO  GetFileHandler Handler(tag: 54, GET) reader: LR-Handler(tag: 54, GET)
+2015-05-03 09:33:07,526+0000 INFO  GetFileHandler Handler(tag: 54, GET) sending length: 1000000000, 1997605448
+2015-05-03 09:33:07,526+0000 INFO  ReadBuffer RB-LR-Handler(tag: 54, GET) will ask for 8 buffers for a size of 1000000000
+2015-05-03 09:33:07,526+0000 INFO  ReadBuffer RB-LR-Handler(tag: 54, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:33:07,526+0000 INFO  LocalIOProvider LR-Handler(tag: 54, GET) rbuf: RB-LR-Handler(tag: 54, GET)
+2015-05-03 09:33:07,526+0000 INFO  GetFileHandler Handler(tag: 55, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/inputs/output-af.txt
+2015-05-03 09:33:07,527+0000 INFO  GetFileHandler Handler(tag: 55, GET) reader: LR-Handler(tag: 55, GET)
+2015-05-03 09:33:07,527+0000 INFO  GetFileHandler Handler(tag: 55, GET) sending length: 1000000000, 456681058
+2015-05-03 09:33:07,527+0000 INFO  ReadBuffer RB-LR-Handler(tag: 55, GET) will ask for 8 buffers for a size of 1000000000
+2015-05-03 09:33:07,527+0000 INFO  ReadBuffer RB-LR-Handler(tag: 55, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:33:07,527+0000 INFO  LocalIOProvider LR-Handler(tag: 55, GET) rbuf: RB-LR-Handler(tag: 55, GET)
+2015-05-03 09:33:08,231+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 75497472, UsedHeap: 31377728, JVMThreads: 20
+2015-05-03 09:33:08,231+0000 INFO  RuntimeStats$ProgressTicker   Stage in:11
+2015-05-03 09:33:09,232+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 75497472, UsedHeap: 34953752, JVMThreads: 20
+2015-05-03 09:33:10,232+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 75497472, UsedHeap: 36254136, JVMThreads: 20
+2015-05-03 09:33:11,232+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 75497472, UsedHeap: 36904328, JVMThreads: 20
+2015-05-03 09:33:12,232+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 75497472, UsedHeap: 37879600, JVMThreads: 20
+2015-05-03 09:33:13,233+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 75497472, UsedHeap: 38529784, JVMThreads: 20
+2015-05-03 09:33:14,233+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 75497472, UsedHeap: 39179960, JVMThreads: 20
+2015-05-03 09:33:15,233+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 75497472, UsedHeap: 40155240, JVMThreads: 20
+2015-05-03 09:33:16,233+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 75497472, UsedHeap: 41130520, JVMThreads: 20
+2015-05-03 09:33:17,234+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 75497472, UsedHeap: 41780712, JVMThreads: 20
+2015-05-03 09:33:18,234+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 16286592, JVMThreads: 20
+2015-05-03 09:33:19,234+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 17495976, JVMThreads: 20
+2015-05-03 09:33:20,234+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 17951096, JVMThreads: 20
+2015-05-03 09:33:20,758+0000 INFO  GetFileHandler Handler(tag: 29, GET) suspending
+2015-05-03 09:33:21,235+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 19199392, JVMThreads: 20
+2015-05-03 09:33:21,957+0000 INFO  GetFileHandler Handler(tag: 55, GET) suspending
+2015-05-03 09:33:22,235+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 20096624, JVMThreads: 20
+2015-05-03 09:33:23,102+0000 INFO  GetFileHandler Handler(tag: 29, GET) resuming
+2015-05-03 09:33:23,235+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 20993848, JVMThreads: 20
+2015-05-03 09:33:23,705+0000 INFO  GetFileHandler Handler(tag: 55, GET) resuming
+2015-05-03 09:33:24,236+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 21891080, JVMThreads: 20
+2015-05-03 09:33:25,236+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 22788288, JVMThreads: 20
+2015-05-03 09:33:26,236+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 23685496, JVMThreads: 20
+2015-05-03 09:33:27,236+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 24127600, JVMThreads: 20
+2015-05-03 09:33:28,237+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 25024832, JVMThreads: 20
+2015-05-03 09:33:29,237+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 25922048, JVMThreads: 20
+2015-05-03 09:33:30,237+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 26819280, JVMThreads: 20
+2015-05-03 09:33:31,237+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 27716488, JVMThreads: 20
+2015-05-03 09:33:32,238+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 28613696, JVMThreads: 20
+2015-05-03 09:33:33,238+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 29068816, JVMThreads: 20
+2015-05-03 09:33:34,238+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 29510920, JVMThreads: 20
+2015-05-03 09:33:35,239+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 30408144, JVMThreads: 20
+2015-05-03 09:33:35,536+0000 INFO  GetFileHandler Handler(tag: 31, GET) suspending
+2015-05-03 09:33:36,239+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 31305368, JVMThreads: 20
+2015-05-03 09:33:37,239+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 32202584, JVMThreads: 20
+2015-05-03 09:33:37,478+0000 INFO  GetFileHandler Handler(tag: 31, GET) resuming
+2015-05-03 09:33:38,239+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 33099784, JVMThreads: 20
+2015-05-03 09:33:38,240+0000 INFO  RuntimeStats$ProgressTicker   Stage in:11
+2015-05-03 09:33:38,761+0000 INFO  HeartBeatCommand http://127.0.0.1:50010 up latency: 1ms, rtt: 194ms
+2015-05-03 09:33:39,240+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 34647144, JVMThreads: 20
+2015-05-03 09:33:40,240+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 35544360, JVMThreads: 20
+2015-05-03 09:33:41,241+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 35986472, JVMThreads: 20
+2015-05-03 09:33:42,241+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 36883680, JVMThreads: 20
+2015-05-03 09:33:43,241+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 37780888, JVMThreads: 20
+2015-05-03 09:33:44,241+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 38678112, JVMThreads: 20
+2015-05-03 09:33:45,242+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 39575328, JVMThreads: 20
+2015-05-03 09:33:46,242+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 40030448, JVMThreads: 20
+2015-05-03 09:33:47,242+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 40927672, JVMThreads: 20
+2015-05-03 09:33:48,242+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 41824896, JVMThreads: 20
+2015-05-03 09:33:49,243+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 42267000, JVMThreads: 20
+2015-05-03 09:33:50,243+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 43164200, JVMThreads: 20
+2015-05-03 09:33:51,243+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 44061408, JVMThreads: 20
+2015-05-03 09:33:52,244+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 44958632, JVMThreads: 20
+2015-05-03 09:33:53,244+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 45855856, JVMThreads: 20
+2015-05-03 09:33:54,244+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 46753072, JVMThreads: 20
+2015-05-03 09:33:55,244+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 47650288, JVMThreads: 20
+2015-05-03 09:33:56,245+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 48092392, JVMThreads: 20
+2015-05-03 09:33:57,245+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 48989600, JVMThreads: 20
+2015-05-03 09:33:58,245+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 49886824, JVMThreads: 20
+2015-05-03 09:33:59,245+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 50341936, JVMThreads: 20
+2015-05-03 09:34:00,246+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 51239168, JVMThreads: 20
+2015-05-03 09:34:01,246+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 52136376, JVMThreads: 20
+2015-05-03 09:34:02,246+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 53033584, JVMThreads: 20
+2015-05-03 09:34:02,303+0000 INFO  GetFileHandler Handler(tag: 51, GET) suspending
+2015-05-03 09:34:03,247+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 53475688, JVMThreads: 20
+2015-05-03 09:34:04,247+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 54372920, JVMThreads: 20
+2015-05-03 09:34:04,390+0000 INFO  GetFileHandler Handler(tag: 51, GET) resuming
+2015-05-03 09:34:05,247+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 55270136, JVMThreads: 20
+2015-05-03 09:34:06,247+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 56167368, JVMThreads: 20
+2015-05-03 09:34:07,248+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 57064576, JVMThreads: 20
+2015-05-03 09:34:08,248+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 57961784, JVMThreads: 20
+2015-05-03 09:34:08,248+0000 INFO  RuntimeStats$ProgressTicker   Stage in:11
+2015-05-03 09:34:09,249+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 58859008, JVMThreads: 20
+2015-05-03 09:34:10,249+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 59756224, JVMThreads: 20
+2015-05-03 09:34:10,914+0000 INFO  GetFileHandler Handler(tag: 31, GET) suspending
+2015-05-03 09:34:11,249+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 59756224, JVMThreads: 20
+2015-05-03 09:34:12,249+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 60653424, JVMThreads: 20
+2015-05-03 09:34:12,794+0000 INFO  GetFileHandler Handler(tag: 31, GET) resuming
+2015-05-03 09:34:13,250+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 61550656, JVMThreads: 20
+2015-05-03 09:34:13,616+0000 INFO  HeartBeatCommand http://127.0.0.1:50010 up latency: 1ms, rtt: 166ms
+2015-05-03 09:34:14,250+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 62447872, JVMThreads: 20
+2015-05-03 09:34:15,250+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 63345096, JVMThreads: 20
+2015-05-03 09:34:16,250+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 64242296, JVMThreads: 20
+2015-05-03 09:34:17,251+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 65139504, JVMThreads: 20
+2015-05-03 09:34:17,713+0000 INFO  GetFileHandler Handler(tag: 55, GET) suspending
+2015-05-03 09:34:17,824+0000 INFO  GetFileHandler Handler(tag: 29, GET) suspending
+2015-05-03 09:34:18,251+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 65581608, JVMThreads: 20
+2015-05-03 09:34:19,151+0000 INFO  GetFileHandler Handler(tag: 51, GET) unregistering (last)
+2015-05-03 09:34:19,151+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:34:19,251+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 66478840, JVMThreads: 20
+2015-05-03 09:34:19,340+0000 INFO  GetFileHandler Handler(tag: 55, GET) resuming
+2015-05-03 09:34:19,612+0000 INFO  GetFileHandler Handler(tag: 50, GET) suspending
+2015-05-03 09:34:19,681+0000 INFO  GetFileHandler Handler(tag: 29, GET) resuming
+2015-05-03 09:34:20,139+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-8-2-1414225985073 status=2 workerid=ip-172-31-18-166:000000
+2015-05-03 09:34:20,252+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 67376048, JVMThreads: 20
+2015-05-03 09:34:20,252+0000 INFO  RuntimeStats$ProgressTicker   Stage in:10  Active:1
+2015-05-03 09:34:21,252+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 68273248, JVMThreads: 20
+2015-05-03 09:34:21,472+0000 INFO  GetFileHandler Handler(tag: 50, GET) resuming
+2015-05-03 09:34:22,252+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 69170464, JVMThreads: 20
+2015-05-03 09:34:23,253+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 70067680, JVMThreads: 20
+2015-05-03 09:34:24,253+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 70522776, JVMThreads: 20
+2015-05-03 09:34:25,253+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 70964880, JVMThreads: 20
+2015-05-03 09:34:26,253+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 71862112, JVMThreads: 20
+2015-05-03 09:34:27,254+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 72759328, JVMThreads: 20
+2015-05-03 09:34:28,254+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 73656552, JVMThreads: 20
+2015-05-03 09:34:29,254+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 74553776, JVMThreads: 20
+2015-05-03 09:34:30,255+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 75450984, JVMThreads: 20
+2015-05-03 09:34:31,018+0000 INFO  GetFileHandler Handler(tag: 54, GET) suspending
+2015-05-03 09:34:31,255+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 76348176, JVMThreads: 20
+2015-05-03 09:34:32,255+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 77245408, JVMThreads: 20
+2015-05-03 09:34:32,587+0000 INFO  GetFileHandler Handler(tag: 54, GET) resuming
+2015-05-03 09:34:33,256+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 77687512, JVMThreads: 20
+2015-05-03 09:34:33,558+0000 INFO  GetFileHandler Handler(tag: 31, GET) suspending
+2015-05-03 09:34:34,256+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 78584736, JVMThreads: 20
+2015-05-03 09:34:34,552+0000 INFO  GetFileHandler Handler(tag: 30, GET) suspending
+2015-05-03 09:34:35,029+0000 INFO  GetFileHandler Handler(tag: 22, GET) suspending
+2015-05-03 09:34:35,134+0000 INFO  GetFileHandler Handler(tag: 31, GET) resuming
+2015-05-03 09:34:35,256+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 79481952, JVMThreads: 20
+2015-05-03 09:34:36,139+0000 INFO  GetFileHandler Handler(tag: 30, GET) resuming
+2015-05-03 09:34:36,257+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 16015856, JVMThreads: 20
+2015-05-03 09:34:36,546+0000 INFO  GetFileHandler Handler(tag: 22, GET) resuming
+2015-05-03 09:34:37,257+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 16968528, JVMThreads: 20
+2015-05-03 09:34:38,257+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 17991176, JVMThreads: 20
+2015-05-03 09:34:39,257+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 19013808, JVMThreads: 20
+2015-05-03 09:34:40,258+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 20036432, JVMThreads: 20
+2015-05-03 09:34:41,258+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 20546624, JVMThreads: 20
+2015-05-03 09:34:42,094+0000 INFO  GetFileHandler Handler(tag: 53, GET) suspending
+2015-05-03 09:34:42,204+0000 INFO  GetFileHandler Handler(tag: 52, GET) suspending
+2015-05-03 09:34:42,258+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 21059080, JVMThreads: 20
+2015-05-03 09:34:42,718+0000 INFO  GetFileHandler Handler(tag: 29, GET) suspending
+2015-05-03 09:34:42,973+0000 INFO  GetFileHandler Handler(tag: 30, GET) suspending
+2015-05-03 09:34:43,259+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 22081704, JVMThreads: 20
+2015-05-03 09:34:43,710+0000 INFO  GetFileHandler Handler(tag: 52, GET) resuming
+2015-05-03 09:34:44,259+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 23104344, JVMThreads: 20
+2015-05-03 09:34:44,796+0000 INFO  GetFileHandler Handler(tag: 53, GET) resuming
+2015-05-03 09:34:45,004+0000 INFO  GetFileHandler Handler(tag: 29, GET) resuming
+2015-05-03 09:34:45,147+0000 INFO  GetFileHandler Handler(tag: 30, GET) resuming
+2015-05-03 09:34:45,259+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 23614536, JVMThreads: 20
+2015-05-03 09:34:46,259+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 24637176, JVMThreads: 20
+2015-05-03 09:34:47,260+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 25149608, JVMThreads: 20
+2015-05-03 09:34:48,260+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 26172256, JVMThreads: 20
+2015-05-03 09:34:48,528+0000 INFO  HeartBeatCommand http://127.0.0.1:50010 up latency: 0ms, rtt: 193ms
+2015-05-03 09:34:49,260+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 27526560, JVMThreads: 20
+2015-05-03 09:34:50,260+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 28036752, JVMThreads: 20
+2015-05-03 09:34:50,261+0000 INFO  RuntimeStats$ProgressTicker   Stage in:10  Active:1
+2015-05-03 09:34:51,261+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 29059360, JVMThreads: 20
+2015-05-03 09:34:52,261+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 29571816, JVMThreads: 20
+2015-05-03 09:34:53,261+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 30594464, JVMThreads: 20
+2015-05-03 09:34:54,262+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 31104640, JVMThreads: 20
+2015-05-03 09:34:55,262+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 32127264, JVMThreads: 20
+2015-05-03 09:34:56,262+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 33149896, JVMThreads: 20
+2015-05-03 09:34:57,262+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 33662352, JVMThreads: 20
+2015-05-03 09:34:58,263+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 34172528, JVMThreads: 20
+2015-05-03 09:34:59,263+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 35195136, JVMThreads: 20
+2015-05-03 09:35:00,263+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 36217776, JVMThreads: 20
+2015-05-03 09:35:00,679+0000 INFO  GetFileHandler Handler(tag: 55, GET) suspending
+2015-05-03 09:35:01,264+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 37240408, JVMThreads: 20
+2015-05-03 09:35:02,264+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 37240408, JVMThreads: 20
+2015-05-03 09:35:02,310+0000 INFO  GetFileHandler Handler(tag: 55, GET) resuming
+2015-05-03 09:35:03,264+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 38263056, JVMThreads: 20
+2015-05-03 09:35:04,264+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 39285664, JVMThreads: 20
+2015-05-03 09:35:05,265+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 40308312, JVMThreads: 20
+2015-05-03 09:35:06,265+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 41330944, JVMThreads: 20
+2015-05-03 09:35:07,265+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 41330944, JVMThreads: 20
+2015-05-03 09:35:08,265+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 42353568, JVMThreads: 20
+2015-05-03 09:35:09,266+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 43376200, JVMThreads: 20
+2015-05-03 09:35:10,266+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 44398848, JVMThreads: 20
+2015-05-03 09:35:11,266+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 44909024, JVMThreads: 20
+2015-05-03 09:35:11,494+0000 INFO  GetFileHandler Handler(tag: 50, GET) suspending
+2015-05-03 09:35:12,185+0000 INFO  GetFileHandler Handler(tag: 54, GET) suspending
+2015-05-03 09:35:12,267+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 45421456, JVMThreads: 20
+2015-05-03 09:35:13,109+0000 INFO  GetFileHandler Handler(tag: 50, GET) resuming
+2015-05-03 09:35:13,267+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 46444104, JVMThreads: 20
+2015-05-03 09:35:13,778+0000 INFO  GetFileHandler Handler(tag: 54, GET) resuming
+2015-05-03 09:35:14,267+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 47466736, JVMThreads: 20
+2015-05-03 09:35:15,267+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 47976928, JVMThreads: 20
+2015-05-03 09:35:16,268+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 48489360, JVMThreads: 20
+2015-05-03 09:35:17,268+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 49511992, JVMThreads: 20
+2015-05-03 09:35:18,268+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 50534640, JVMThreads: 20
+2015-05-03 09:35:19,269+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 51557272, JVMThreads: 20
+2015-05-03 09:35:20,269+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 52067456, JVMThreads: 20
+2015-05-03 09:35:20,269+0000 INFO  RuntimeStats$ProgressTicker   Stage in:10  Active:1
+2015-05-03 09:35:21,269+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 52579896, JVMThreads: 20
+2015-05-03 09:35:22,270+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 53602536, JVMThreads: 20
+2015-05-03 09:35:23,270+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 54625184, JVMThreads: 20
+2015-05-03 09:35:23,412+0000 INFO  HeartBeatCommand http://127.0.0.1:50010 up latency: 1ms, rtt: 192ms
+2015-05-03 09:35:24,270+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 55135376, JVMThreads: 20
+2015-05-03 09:35:25,271+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 56157992, JVMThreads: 20
+2015-05-03 09:35:26,271+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 57180624, JVMThreads: 20
+2015-05-03 09:35:27,271+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 57693080, JVMThreads: 20
+2015-05-03 09:35:28,271+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 58203256, JVMThreads: 20
+2015-05-03 09:35:29,272+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 59225904, JVMThreads: 20
+2015-05-03 09:35:30,272+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 60248512, JVMThreads: 20
+2015-05-03 09:35:31,272+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 61271160, JVMThreads: 20
+2015-05-03 09:35:32,272+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 61783616, JVMThreads: 20
+2015-05-03 09:35:33,273+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 62293792, JVMThreads: 20
+2015-05-03 09:35:34,273+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 63316416, JVMThreads: 20
+2015-05-03 09:35:35,273+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 64339048, JVMThreads: 20
+2015-05-03 09:35:36,274+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 64851504, JVMThreads: 20
+2015-05-03 09:35:37,274+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 65361696, JVMThreads: 20
+2015-05-03 09:35:38,274+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 66384304, JVMThreads: 20
+2015-05-03 09:35:39,074+0000 INFO  GetFileHandler Handler(tag: 31, GET) suspending
+2015-05-03 09:35:39,274+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 67406920, JVMThreads: 20
+2015-05-03 09:35:40,275+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 68429568, JVMThreads: 20
+2015-05-03 09:35:40,609+0000 INFO  GetFileHandler Handler(tag: 31, GET) resuming
+2015-05-03 09:35:41,275+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 68939744, JVMThreads: 20
+2015-05-03 09:35:42,275+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 69452192, JVMThreads: 20
+2015-05-03 09:35:43,276+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 70474840, JVMThreads: 20
+2015-05-03 09:35:44,040+0000 INFO  GetFileHandler Handler(tag: 22, GET) suspending
+2015-05-03 09:35:44,276+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 71497448, JVMThreads: 20
+2015-05-03 09:35:45,276+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 72520080, JVMThreads: 20
+2015-05-03 09:35:45,596+0000 INFO  GetFileHandler Handler(tag: 22, GET) resuming
+2015-05-03 09:35:46,276+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 72520080, JVMThreads: 20
+2015-05-03 09:35:47,277+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 73542720, JVMThreads: 20
+2015-05-03 09:35:47,933+0000 INFO  GetFileHandler Handler(tag: 29, GET) suspending
+2015-05-03 09:35:48,277+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 74565336, JVMThreads: 20
+2015-05-03 09:35:49,277+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 75587984, JVMThreads: 20
+2015-05-03 09:35:49,540+0000 INFO  GetFileHandler Handler(tag: 29, GET) resuming
+2015-05-03 09:35:50,277+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 76098160, JVMThreads: 20
+2015-05-03 09:35:50,278+0000 INFO  RuntimeStats$ProgressTicker   Stage in:10  Active:1
+2015-05-03 09:35:50,370+0000 INFO  GetFileHandler Handler(tag: 54, GET) suspending
+2015-05-03 09:35:51,278+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 76610616, JVMThreads: 20
+2015-05-03 09:35:52,071+0000 INFO  GetFileHandler Handler(tag: 54, GET) resuming
+2015-05-03 09:35:52,278+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 77633240, JVMThreads: 20
+2015-05-03 09:35:53,278+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 78655872, JVMThreads: 20
+2015-05-03 09:35:53,996+0000 INFO  GetFileHandler Handler(tag: 34, GET) unregistering (last)
+2015-05-03 09:35:53,996+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:35:54,279+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 79166064, JVMThreads: 20
+2015-05-03 09:35:54,909+0000 INFO  GetFileHandler Handler(tag: 57, GET) request complete; src=file://localhost//usr/local/bin/swift-trunk/libexec/_swiftwrap.staging
+2015-05-03 09:35:54,910+0000 INFO  GetFileHandler Handler(tag: 57, GET) reader: LR-Handler(tag: 57, GET)
+2015-05-03 09:35:54,910+0000 INFO  GetFileHandler Handler(tag: 57, GET) sending length: 6253, 1287143634
+2015-05-03 09:35:54,910+0000 INFO  ReadBuffer RB-LR-Handler(tag: 57, GET) will ask for 1 buffers for a size of 6253
+2015-05-03 09:35:54,910+0000 INFO  ReadBuffer RB-LR-Handler(tag: 57, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:35:54,910+0000 INFO  LocalIOProvider LR-Handler(tag: 57, GET) rbuf: RB-LR-Handler(tag: 57, GET)
+2015-05-03 09:35:54,916+0000 INFO  GetFileHandler Handler(tag: 57, GET) unregistering (last)
+2015-05-03 09:35:54,916+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:35:55,103+0000 INFO  GetFileHandler Handler(tag: 58, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/wordcount.sh
+2015-05-03 09:35:55,104+0000 INFO  GetFileHandler Handler(tag: 58, GET) reader: LR-Handler(tag: 58, GET)
+2015-05-03 09:35:55,104+0000 INFO  GetFileHandler Handler(tag: 58, GET) sending length: 483, 1156479913
+2015-05-03 09:35:55,104+0000 INFO  ReadBuffer RB-LR-Handler(tag: 58, GET) will ask for 1 buffers for a size of 483
+2015-05-03 09:35:55,104+0000 INFO  ReadBuffer RB-LR-Handler(tag: 58, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:35:55,104+0000 INFO  LocalIOProvider LR-Handler(tag: 58, GET) rbuf: RB-LR-Handler(tag: 58, GET)
+2015-05-03 09:35:55,105+0000 INFO  GetFileHandler Handler(tag: 58, GET) unregistering (last)
+2015-05-03 09:35:55,105+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:35:55,279+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 108003328, UsedHeap: 79787000, JVMThreads: 20
+2015-05-03 09:35:55,303+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-10-2-1414225985078 status=2 workerid=ip-172-31-20-100:000000
+2015-05-03 09:35:56,191+0000 INFO  GetFileHandler Handler(tag: 52, GET) unregistering (last)
+2015-05-03 09:35:56,191+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:35:56,192+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:35:56,279+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 16531120, JVMThreads: 20
+2015-05-03 09:35:56,280+0000 INFO  RuntimeStats$ProgressTicker   Stage in:9  Active:2
+2015-05-03 09:35:57,098+0000 INFO  GetFileHandler Handler(tag: 22, GET) unregistering (last)
+2015-05-03 09:35:57,098+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:35:57,280+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 17607320, JVMThreads: 20
+2015-05-03 09:35:57,346+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-9-2-1414225985076 status=2 workerid=ip-172-31-20-87:000000
+2015-05-03 09:35:57,504+0000 INFO  GetFileHandler Handler(tag: 53, GET) unregistering (last)
+2015-05-03 09:35:57,504+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:35:57,509+0000 INFO  GetFileHandler Handler(tag: 50, GET) unregistering (last)
+2015-05-03 09:35:57,509+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:35:57,991+0000 INFO  GetFileHandler Handler(tag: 61, GET) request complete; src=file://localhost//usr/local/bin/swift-trunk/libexec/_swiftwrap.staging
+2015-05-03 09:35:57,991+0000 INFO  GetFileHandler Handler(tag: 61, GET) reader: LR-Handler(tag: 61, GET)
+2015-05-03 09:35:57,991+0000 INFO  GetFileHandler Handler(tag: 61, GET) sending length: 6253, 1508914638
+2015-05-03 09:35:57,991+0000 INFO  ReadBuffer RB-LR-Handler(tag: 61, GET) will ask for 1 buffers for a size of 6253
+2015-05-03 09:35:57,992+0000 INFO  ReadBuffer RB-LR-Handler(tag: 61, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:35:57,992+0000 INFO  LocalIOProvider LR-Handler(tag: 61, GET) rbuf: RB-LR-Handler(tag: 61, GET)
+2015-05-03 09:35:57,992+0000 INFO  GetFileHandler Handler(tag: 61, GET) unregistering (last)
+2015-05-03 09:35:57,992+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:35:58,078+0000 INFO  GetFileHandler Handler(tag: 30, GET) unregistering (last)
+2015-05-03 09:35:58,078+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:35:58,169+0000 INFO  GetFileHandler Handler(tag: 62, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/wordcount.sh
+2015-05-03 09:35:58,169+0000 INFO  GetFileHandler Handler(tag: 62, GET) reader: LR-Handler(tag: 62, GET)
+2015-05-03 09:35:58,169+0000 INFO  GetFileHandler Handler(tag: 62, GET) sending length: 483, 452672217
+2015-05-03 09:35:58,170+0000 INFO  ReadBuffer RB-LR-Handler(tag: 62, GET) will ask for 1 buffers for a size of 483
+2015-05-03 09:35:58,170+0000 INFO  ReadBuffer RB-LR-Handler(tag: 62, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:35:58,170+0000 INFO  LocalIOProvider LR-Handler(tag: 62, GET) rbuf: RB-LR-Handler(tag: 62, GET)
+2015-05-03 09:35:58,170+0000 INFO  GetFileHandler Handler(tag: 62, GET) unregistering (last)
+2015-05-03 09:35:58,170+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:35:58,245+0000 INFO  GetFileHandler Handler(tag: 55, GET) unregistering (last)
+2015-05-03 09:35:58,245+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:35:58,273+0000 INFO  HeartBeatCommand http://127.0.0.1:50010 up latency: 2ms, rtt: 168ms
+2015-05-03 09:35:58,274+0000 INFO  GetFileHandler Handler(tag: 54, GET) unregistering (last)
+2015-05-03 09:35:58,274+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:35:58,274+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:35:58,280+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 19041112, JVMThreads: 20
+2015-05-03 09:35:58,280+0000 INFO  RuntimeStats$ProgressTicker   Stage in:8  Active:3
+2015-05-03 09:35:58,286+0000 INFO  AbstractCoasterChannel Got signal for unregistered tag (55): SUSPEND
+2015-05-03 09:35:58,286+0000 INFO  AbstractCoasterChannel Registered handlers: [Handler(tag: 29, GET), Handler(tag: 31, GET)]
+2015-05-03 09:35:58,345+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-7-2-1414225985071 status=2 workerid=ip-172-31-28-214:000000
+2015-05-03 09:35:58,349+0000 INFO  GetFileHandler Handler(tag: 31, GET) suspending
+2015-05-03 09:35:58,428+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-0-2-1414225985086 status=2 workerid=ip-172-31-21-89:000000
+2015-05-03 09:35:58,468+0000 INFO  GetFileHandler Handler(tag: 65, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/wordcount.sh
+2015-05-03 09:35:58,468+0000 INFO  GetFileHandler Handler(tag: 65, GET) reader: LR-Handler(tag: 65, GET)
+2015-05-03 09:35:58,468+0000 INFO  GetFileHandler Handler(tag: 65, GET) sending length: 483, 96916502
+2015-05-03 09:35:58,468+0000 INFO  ReadBuffer RB-LR-Handler(tag: 65, GET) will ask for 1 buffers for a size of 483
+2015-05-03 09:35:58,468+0000 INFO  ReadBuffer RB-LR-Handler(tag: 65, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:35:58,468+0000 INFO  LocalIOProvider LR-Handler(tag: 65, GET) rbuf: RB-LR-Handler(tag: 65, GET)
+2015-05-03 09:35:58,468+0000 INFO  GetFileHandler Handler(tag: 65, GET) unregistering (last)
+2015-05-03 09:35:58,468+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:35:58,548+0000 INFO  GetFileHandler Handler(tag: 29, GET) suspending
+2015-05-03 09:35:58,665+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-3-2-1414225985084 status=2 workerid=ip-172-31-16-173:000000
+2015-05-03 09:35:58,915+0000 INFO  GetFileHandler Handler(tag: 67, GET) request complete; src=file://localhost//usr/local/bin/swift-trunk/libexec/_swiftwrap.staging
+2015-05-03 09:35:58,915+0000 INFO  GetFileHandler Handler(tag: 67, GET) reader: LR-Handler(tag: 67, GET)
+2015-05-03 09:35:58,915+0000 INFO  GetFileHandler Handler(tag: 67, GET) sending length: 6253, 918820714
+2015-05-03 09:35:58,915+0000 INFO  ReadBuffer RB-LR-Handler(tag: 67, GET) will ask for 1 buffers for a size of 6253
+2015-05-03 09:35:58,915+0000 INFO  ReadBuffer RB-LR-Handler(tag: 67, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:35:58,915+0000 INFO  LocalIOProvider LR-Handler(tag: 67, GET) rbuf: RB-LR-Handler(tag: 67, GET)
+2015-05-03 09:35:58,915+0000 INFO  GetFileHandler Handler(tag: 67, GET) unregistering (last)
+2015-05-03 09:35:58,915+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-6-2-1414225985085 status=2 workerid=ip-172-31-30-247:000000
+2015-05-03 09:35:58,916+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:35:58,963+0000 INFO  GetFileHandler Handler(tag: 69, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/wordcount.sh
+2015-05-03 09:35:58,963+0000 INFO  GetFileHandler Handler(tag: 69, GET) reader: LR-Handler(tag: 69, GET)
+2015-05-03 09:35:58,963+0000 INFO  GetFileHandler Handler(tag: 69, GET) sending length: 483, 1481973885
+2015-05-03 09:35:58,963+0000 INFO  ReadBuffer RB-LR-Handler(tag: 69, GET) will ask for 1 buffers for a size of 483
+2015-05-03 09:35:58,963+0000 INFO  ReadBuffer RB-LR-Handler(tag: 69, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:35:58,963+0000 INFO  LocalIOProvider LR-Handler(tag: 69, GET) rbuf: RB-LR-Handler(tag: 69, GET)
+2015-05-03 09:35:58,963+0000 INFO  GetFileHandler Handler(tag: 69, GET) unregistering (last)
+2015-05-03 09:35:58,964+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:35:59,067+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-4-2-1414225985080 status=2 workerid=ip-172-31-21-75:000000
+2015-05-03 09:35:59,211+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-5-2-1414225985082 status=2 workerid=ip-172-31-17-107:000000
+2015-05-03 09:35:59,281+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 19041112, JVMThreads: 20
+2015-05-03 09:35:59,281+0000 INFO  RuntimeStats$ProgressTicker   Stage in:2  Active:9
+2015-05-03 09:35:59,331+0000 INFO  GetFileHandler Handler(tag: 31, GET) resuming
+2015-05-03 09:35:59,369+0000 INFO  GetFileHandler Handler(tag: 31, GET) unregistering (last)
+2015-05-03 09:35:59,369+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:35:59,369+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:35:59,369+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:35:59,369+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:35:59,369+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:35:59,369+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:35:59,369+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:35:59,369+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:35:59,851+0000 INFO  GetFileHandler Handler(tag: 29, GET) resuming
+2015-05-03 09:35:59,851+0000 INFO  GetFileHandler Handler(tag: 72, GET) request complete; src=file://localhost//usr/local/bin/swift-trunk/libexec/_swiftwrap.staging
+2015-05-03 09:35:59,851+0000 INFO  GetFileHandler Handler(tag: 72, GET) reader: LR-Handler(tag: 72, GET)
+2015-05-03 09:35:59,851+0000 INFO  GetFileHandler Handler(tag: 72, GET) sending length: 6253, 1720947664
+2015-05-03 09:35:59,851+0000 INFO  ReadBuffer RB-LR-Handler(tag: 72, GET) will ask for 1 buffers for a size of 6253
+2015-05-03 09:35:59,851+0000 INFO  ReadBuffer RB-LR-Handler(tag: 72, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:35:59,851+0000 INFO  LocalIOProvider LR-Handler(tag: 72, GET) rbuf: RB-LR-Handler(tag: 72, GET)
+2015-05-03 09:35:59,852+0000 INFO  GetFileHandler Handler(tag: 72, GET) unregistering (last)
+2015-05-03 09:35:59,852+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:35:59,862+0000 INFO  GetFileHandler Handler(tag: 73, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/wordcount.sh
+2015-05-03 09:35:59,862+0000 INFO  GetFileHandler Handler(tag: 73, GET) reader: LR-Handler(tag: 73, GET)
+2015-05-03 09:35:59,862+0000 INFO  GetFileHandler Handler(tag: 73, GET) sending length: 483, 1974046075
+2015-05-03 09:35:59,862+0000 INFO  ReadBuffer RB-LR-Handler(tag: 73, GET) will ask for 1 buffers for a size of 483
+2015-05-03 09:35:59,862+0000 INFO  ReadBuffer RB-LR-Handler(tag: 73, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:35:59,862+0000 INFO  LocalIOProvider LR-Handler(tag: 73, GET) rbuf: RB-LR-Handler(tag: 73, GET)
+2015-05-03 09:35:59,863+0000 INFO  GetFileHandler Handler(tag: 73, GET) unregistering (last)
+2015-05-03 09:35:59,863+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:35:59,892+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2x3-1414225985069 status=2 workerid=ip-172-31-17-125:000000
+2015-05-03 09:35:59,893+0000 INFO  GetFileHandler Handler(tag: 29, GET) unregistering (last)
+2015-05-03 09:35:59,893+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:35:59,893+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:35:59,893+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:35:59,893+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:35:59,943+0000 INFO  AbstractCoasterChannel Got signal for unregistered tag (29): SUSPEND
+2015-05-03 09:35:59,943+0000 INFO  AbstractCoasterChannel Registered handlers: []
+2015-05-03 09:36:00,281+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 19575224, JVMThreads: 20
+2015-05-03 09:36:00,281+0000 INFO  RuntimeStats$ProgressTicker   Stage in:1  Active:10
+2015-05-03 09:36:00,636+0000 INFO  GetFileHandler Handler(tag: 75, GET) request complete; src=file://localhost//usr/local/bin/swift-trunk/libexec/_swiftwrap.staging
+2015-05-03 09:36:00,636+0000 INFO  GetFileHandler Handler(tag: 75, GET) reader: LR-Handler(tag: 75, GET)
+2015-05-03 09:36:00,636+0000 INFO  GetFileHandler Handler(tag: 75, GET) sending length: 6253, 943650155
+2015-05-03 09:36:00,636+0000 INFO  ReadBuffer RB-LR-Handler(tag: 75, GET) will ask for 1 buffers for a size of 6253
+2015-05-03 09:36:00,636+0000 INFO  ReadBuffer RB-LR-Handler(tag: 75, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:36:00,636+0000 INFO  LocalIOProvider LR-Handler(tag: 75, GET) rbuf: RB-LR-Handler(tag: 75, GET)
+2015-05-03 09:36:00,636+0000 INFO  GetFileHandler Handler(tag: 75, GET) unregistering (last)
+2015-05-03 09:36:00,636+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:36:00,735+0000 INFO  GetFileHandler Handler(tag: 76, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/wordcount.sh
+2015-05-03 09:36:00,735+0000 INFO  GetFileHandler Handler(tag: 76, GET) reader: LR-Handler(tag: 76, GET)
+2015-05-03 09:36:00,735+0000 INFO  GetFileHandler Handler(tag: 76, GET) sending length: 483, 172514594
+2015-05-03 09:36:00,735+0000 INFO  ReadBuffer RB-LR-Handler(tag: 76, GET) will ask for 1 buffers for a size of 483
+2015-05-03 09:36:00,735+0000 INFO  ReadBuffer RB-LR-Handler(tag: 76, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:36:00,735+0000 INFO  LocalIOProvider LR-Handler(tag: 76, GET) rbuf: RB-LR-Handler(tag: 76, GET)
+2015-05-03 09:36:00,735+0000 INFO  GetFileHandler Handler(tag: 76, GET) unregistering (last)
+2015-05-03 09:36:00,736+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:36:00,839+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-1-2-1414225985074 status=2 workerid=ip-172-31-24-237:000000
+2015-05-03 09:36:00,876+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-8-2-1414225985073 status=17
+2015-05-03 09:36:00,877+0000 INFO  PutFileHandler Handler(tag: 79, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/y/bash-y7nmebzl/output/sim_8.log
+2015-05-03 09:36:00,877+0000 INFO  PutFileHandler Handler(tag: 79, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_8.log
+2015-05-03 09:36:00,883+0000 INFO  PutFileHandler Handler(tag: 80, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/y/bash-y7nmebzl/output/sim_8.out
+2015-05-03 09:36:00,883+0000 INFO  PutFileHandler Handler(tag: 80, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_8.out
+2015-05-03 09:36:00,884+0000 INFO  PutFileHandler Handler(tag: 79, PUT) Transfer done
+2015-05-03 09:36:00,959+0000 INFO  PutFileHandler Handler(tag: 81, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/y/bash-y7nmebzl/wrapper.log
+2015-05-03 09:36:00,959+0000 INFO  PutFileHandler Handler(tag: 81, PUT) destination: file://localhost/run013/wordcount-run013.d/bash-y7nmebzl.info
+2015-05-03 09:36:00,960+0000 INFO  PutFileHandler Handler(tag: 80, PUT) Transfer done
+2015-05-03 09:36:00,992+0000 INFO  PutFileHandler Handler(tag: 81, PUT) Transfer done
+2015-05-03 09:36:01,059+0000 INFO  LateBindingScheduler jobs queued: 0
+2015-05-03 09:36:01,059+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-8-2-1414225985073 status=7
+2015-05-03 09:36:01,059+0000 DEBUG swift JOB_END jobid=bash-y7nmebzl
+2015-05-03 09:36:01,060+0000 INFO  swift END_SUCCESS thread=R-2-8-2 tr=bash
+2015-05-03 09:36:01,060+0000 DEBUG swift PROCEDURE_END line=3 thread=R-2-8-2 name=count_words
+2015-05-03 09:36:01,065+0000 INFO  SwiftFunction Cleaning wc_log:file = <FILE> - Closed
+2015-05-03 09:36:01,065+0000 INFO  SwiftFunction Cleaning wc_out:file = <FILE> - Closed
+2015-05-03 09:36:01,065+0000 DEBUG swift FOREACH_IT_END line=18 thread=R-2-8
+2015-05-03 09:36:01,281+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25314416, JVMThreads: 21
+2015-05-03 09:36:01,282+0000 INFO  RuntimeStats$ProgressTicker   Active:10  Finished successfully:1
+2015-05-03 09:36:02,282+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25314416, JVMThreads: 21
+2015-05-03 09:36:03,282+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25314416, JVMThreads: 21
+2015-05-03 09:36:04,282+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25314416, JVMThreads: 21
+2015-05-03 09:36:05,283+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25314416, JVMThreads: 21
+2015-05-03 09:36:06,283+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25314416, JVMThreads: 21
+2015-05-03 09:36:07,283+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:08,283+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:09,284+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:10,284+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:11,284+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:12,284+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:13,284+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:14,285+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:15,285+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:16,285+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:17,285+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:18,285+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:19,286+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:20,286+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:21,286+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:22,286+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:23,287+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:24,287+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:25,287+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:26,287+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:27,288+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:28,288+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:29,288+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:30,288+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:31,288+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:31,289+0000 INFO  RuntimeStats$ProgressTicker   Active:10  Finished successfully:1
+2015-05-03 09:36:32,289+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:33,043+0000 INFO  HeartBeatCommand http://127.0.0.1:50010 up latency: 39ms, rtt: 53ms
+2015-05-03 09:36:33,289+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:34,289+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:35,290+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:36,290+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:37,290+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:38,290+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:39,291+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 25943576, JVMThreads: 21
+2015-05-03 09:36:40,291+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:41,291+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:42,291+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:43,292+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:44,292+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:45,292+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:46,292+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:47,293+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:48,293+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:49,293+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:50,293+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:51,294+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:52,294+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:53,294+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:54,294+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:55,295+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:56,295+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:57,295+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:58,295+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:36:59,295+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:00,296+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:01,296+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:01,296+0000 INFO  RuntimeStats$ProgressTicker   Active:10  Finished successfully:1
+2015-05-03 09:37:02,296+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:03,297+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:04,297+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:05,297+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:06,297+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:07,297+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:07,930+0000 INFO  HeartBeatCommand http://127.0.0.1:50010 up latency: 1ms, rtt: 55ms
+2015-05-03 09:37:08,298+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:09,298+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:10,298+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:11,298+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:12,299+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:13,299+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:14,299+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:15,299+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:16,299+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:17,300+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:18,300+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:19,300+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:20,300+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:21,301+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:22,301+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:23,301+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:24,301+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:25,302+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:26,302+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:27,302+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:28,302+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26125856, JVMThreads: 21
+2015-05-03 09:37:29,302+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:30,303+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:31,303+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:31,303+0000 INFO  RuntimeStats$ProgressTicker   Active:10  Finished successfully:1
+2015-05-03 09:37:32,303+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:33,303+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:34,304+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:35,304+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:36,304+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:37,304+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:38,305+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:39,305+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:40,305+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:41,305+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:42,305+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:42,803+0000 INFO  HeartBeatCommand http://127.0.0.1:50010 up latency: 1ms, rtt: 43ms
+2015-05-03 09:37:43,306+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:44,306+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:45,306+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:46,306+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:47,307+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:48,307+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:49,307+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:50,307+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:51,308+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:52,308+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:53,308+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:54,308+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:55,309+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:56,309+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:57,309+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:58,309+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:37:59,309+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:00,310+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:01,310+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:01,310+0000 INFO  RuntimeStats$ProgressTicker   Active:10  Finished successfully:1
+2015-05-03 09:38:02,310+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:03,311+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:04,311+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:05,311+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:06,311+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:07,311+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:08,312+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:09,312+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:10,312+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:11,312+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:12,313+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:13,313+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:14,313+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:15,313+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:16,313+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:17,314+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:17,685+0000 INFO  HeartBeatCommand http://127.0.0.1:50010 up latency: 0ms, rtt: 40ms
+2015-05-03 09:38:18,314+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:19,314+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:20,314+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:21,315+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:22,315+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:23,315+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:24,315+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:25,315+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:26,316+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:27,316+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:28,316+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:29,316+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:30,317+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:31,317+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:31,317+0000 INFO  RuntimeStats$ProgressTicker   Active:10  Finished successfully:1
+2015-05-03 09:38:32,317+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:33,317+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:34,318+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:35,318+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:36,318+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:37,319+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:38,319+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:39,319+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:40,319+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:41,320+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:42,320+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:43,320+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:44,320+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:45,320+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:46,321+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:47,321+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:48,321+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:49,321+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:50,322+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:51,322+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:52,322+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:52,586+0000 INFO  HeartBeatCommand http://127.0.0.1:50010 up latency: 1ms, rtt: 55ms
+2015-05-03 09:38:53,322+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:54,323+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:55,323+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:56,323+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:57,323+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:58,324+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:38:59,324+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:39:00,324+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:39:01,324+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:39:01,325+0000 INFO  RuntimeStats$ProgressTicker   Active:10  Finished successfully:1
+2015-05-03 09:39:02,325+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:39:03,325+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26264440, JVMThreads: 21
+2015-05-03 09:39:04,325+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:05,325+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:06,326+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:07,326+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:08,326+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:09,326+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:10,326+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:11,327+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:12,327+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:13,327+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:14,327+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:15,328+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:16,328+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:17,328+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:18,328+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:19,329+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:20,329+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26403104, JVMThreads: 21
+2015-05-03 09:39:21,329+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:22,329+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:23,330+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:24,330+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:25,330+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:26,330+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:27,330+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:27,470+0000 INFO  HeartBeatCommand http://127.0.0.1:50010 up latency: 1ms, rtt: 54ms
+2015-05-03 09:39:28,331+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:29,331+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:30,331+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:31,331+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:31,332+0000 INFO  RuntimeStats$ProgressTicker   Active:10  Finished successfully:1
+2015-05-03 09:39:32,332+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:33,332+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:34,332+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:35,332+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:36,333+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:37,333+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:38,333+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:39,333+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:40,334+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:41,334+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:42,334+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:43,334+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:44,335+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:45,335+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:46,335+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:47,335+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:48,335+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:49,336+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:50,336+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:51,336+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:52,336+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:53,337+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:54,337+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:55,337+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:56,337+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:57,337+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:58,338+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:39:59,338+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:00,338+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:01,338+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:01,339+0000 INFO  RuntimeStats$ProgressTicker   Active:10  Finished successfully:1
+2015-05-03 09:40:02,339+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:02,357+0000 INFO  HeartBeatCommand http://127.0.0.1:50010 up latency: 1ms, rtt: 56ms
+2015-05-03 09:40:03,339+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:04,339+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:05,339+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:06,340+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:07,340+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:08,340+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:09,340+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:10,341+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:11,341+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:12,341+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:13,341+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:14,342+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:15,342+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:16,342+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:17,342+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:17,876+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-4-2-1414225985080 status=17
+2015-05-03 09:40:18,342+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 26585160, JVMThreads: 21
+2015-05-03 09:40:18,343+0000 INFO  RuntimeStats$ProgressTicker   Active:9  Stage out:1  Finished successfully:1
+2015-05-03 09:40:18,539+0000 INFO  PutFileHandler Handler(tag: 84, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/2/bash-28nmebzl/output/sim_4.out
+2015-05-03 09:40:18,539+0000 INFO  PutFileHandler Handler(tag: 84, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_4.out
+2015-05-03 09:40:18,680+0000 INFO  PutFileHandler Handler(tag: 84, PUT) Transfer done
+2015-05-03 09:40:18,681+0000 INFO  PutFileHandler Handler(tag: 85, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/2/bash-28nmebzl/output/sim_4.log
+2015-05-03 09:40:18,681+0000 INFO  PutFileHandler Handler(tag: 85, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_4.log
+2015-05-03 09:40:18,681+0000 INFO  PutFileHandler Handler(tag: 85, PUT) Transfer done
+2015-05-03 09:40:18,681+0000 INFO  PutFileHandler Handler(tag: 86, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/2/bash-28nmebzl/wrapper.log
+2015-05-03 09:40:18,681+0000 INFO  PutFileHandler Handler(tag: 86, PUT) destination: file://localhost/run013/wordcount-run013.d/bash-28nmebzl.info
+2015-05-03 09:40:18,681+0000 INFO  PutFileHandler Handler(tag: 86, PUT) Transfer done
+2015-05-03 09:40:18,775+0000 INFO  LateBindingScheduler jobs queued: 0
+2015-05-03 09:40:18,775+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-4-2-1414225985080 status=7
+2015-05-03 09:40:18,775+0000 DEBUG swift JOB_END jobid=bash-28nmebzl
+2015-05-03 09:40:18,775+0000 INFO  swift END_SUCCESS thread=R-2-4-2 tr=bash
+2015-05-03 09:40:18,779+0000 DEBUG swift PROCEDURE_END line=3 thread=R-2-4-2 name=count_words
+2015-05-03 09:40:18,779+0000 INFO  SwiftFunction Cleaning wc_log:file = <FILE> - Closed
+2015-05-03 09:40:18,779+0000 INFO  SwiftFunction Cleaning wc_out:file = <FILE> - Closed
+2015-05-03 09:40:18,779+0000 DEBUG swift FOREACH_IT_END line=18 thread=R-2-4
+2015-05-03 09:40:19,343+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 32420232, JVMThreads: 21
+2015-05-03 09:40:19,343+0000 INFO  RuntimeStats$ProgressTicker   Active:9  Finished successfully:2
+2015-05-03 09:40:20,343+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 32420232, JVMThreads: 21
+2015-05-03 09:40:21,344+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 32420232, JVMThreads: 21
+2015-05-03 09:40:21,871+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-9-2-1414225985076 status=17
+2015-05-03 09:40:22,344+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 32420232, JVMThreads: 21
+2015-05-03 09:40:22,344+0000 INFO  RuntimeStats$ProgressTicker   Active:8  Stage out:1  Finished successfully:2
+2015-05-03 09:40:22,495+0000 INFO  PutFileHandler Handler(tag: 89, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/z/bash-z7nmebzl/output/sim_9.out
+2015-05-03 09:40:22,495+0000 INFO  PutFileHandler Handler(tag: 89, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_9.out
+2015-05-03 09:40:22,692+0000 INFO  PutFileHandler Handler(tag: 89, PUT) Transfer done
+2015-05-03 09:40:22,731+0000 INFO  PutFileHandler Handler(tag: 90, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/z/bash-z7nmebzl/output/sim_9.log
+2015-05-03 09:40:22,731+0000 INFO  PutFileHandler Handler(tag: 90, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_9.log
+2015-05-03 09:40:22,732+0000 INFO  PutFileHandler Handler(tag: 91, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/z/bash-z7nmebzl/wrapper.log
+2015-05-03 09:40:22,732+0000 INFO  PutFileHandler Handler(tag: 91, PUT) destination: file://localhost/run013/wordcount-run013.d/bash-z7nmebzl.info
+2015-05-03 09:40:22,732+0000 INFO  PutFileHandler Handler(tag: 90, PUT) Transfer done
+2015-05-03 09:40:22,733+0000 INFO  PutFileHandler Handler(tag: 91, PUT) Transfer done
+2015-05-03 09:40:22,819+0000 INFO  LateBindingScheduler jobs queued: 0
+2015-05-03 09:40:22,819+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-9-2-1414225985076 status=7
+2015-05-03 09:40:22,819+0000 DEBUG swift JOB_END jobid=bash-z7nmebzl
+2015-05-03 09:40:22,819+0000 INFO  swift END_SUCCESS thread=R-2-9-2 tr=bash
+2015-05-03 09:40:22,819+0000 DEBUG swift PROCEDURE_END line=3 thread=R-2-9-2 name=count_words
+2015-05-03 09:40:22,820+0000 INFO  SwiftFunction Cleaning wc_log:file = <FILE> - Closed
+2015-05-03 09:40:22,820+0000 INFO  SwiftFunction Cleaning wc_out:file = <FILE> - Closed
+2015-05-03 09:40:22,820+0000 DEBUG swift FOREACH_IT_END line=18 thread=R-2-9
+2015-05-03 09:40:23,092+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2x3-1414225985069 status=17
+2015-05-03 09:40:23,092+0000 INFO  PutFileHandler Handler(tag: 94, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/u/bash-u7nmebzl/output/sim_2.log
+2015-05-03 09:40:23,092+0000 INFO  PutFileHandler Handler(tag: 94, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_2.log
+2015-05-03 09:40:23,092+0000 INFO  PutFileHandler Handler(tag: 95, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/u/bash-u7nmebzl/wrapper.log
+2015-05-03 09:40:23,093+0000 INFO  PutFileHandler Handler(tag: 95, PUT) destination: file://localhost/run013/wordcount-run013.d/bash-u7nmebzl.info
+2015-05-03 09:40:23,093+0000 INFO  PutFileHandler Handler(tag: 94, PUT) Transfer done
+2015-05-03 09:40:23,093+0000 INFO  PutFileHandler Handler(tag: 96, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/u/bash-u7nmebzl/output/sim_2.out
+2015-05-03 09:40:23,093+0000 INFO  PutFileHandler Handler(tag: 96, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_2.out
+2015-05-03 09:40:23,093+0000 INFO  PutFileHandler Handler(tag: 95, PUT) Transfer done
+2015-05-03 09:40:23,344+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 51687800, JVMThreads: 21
+2015-05-03 09:40:23,344+0000 INFO  RuntimeStats$ProgressTicker   Active:7  Stage out:1  Finished successfully:3
+2015-05-03 09:40:23,349+0000 INFO  PutFileHandler Handler(tag: 96, PUT) Transfer done
+2015-05-03 09:40:23,447+0000 INFO  LateBindingScheduler jobs queued: 0
+2015-05-03 09:40:23,447+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2x3-1414225985069 status=7
+2015-05-03 09:40:23,447+0000 DEBUG swift JOB_END jobid=bash-u7nmebzl
+2015-05-03 09:40:23,447+0000 INFO  swift END_SUCCESS thread=R-2x3 tr=bash
+2015-05-03 09:40:23,448+0000 DEBUG swift PROCEDURE_END line=3 thread=R-2x3 name=count_words
+2015-05-03 09:40:23,448+0000 INFO  SwiftFunction Cleaning wc_log:file = <FILE> - Closed
+2015-05-03 09:40:23,448+0000 INFO  SwiftFunction Cleaning wc_out:file = <FILE> - Closed
+2015-05-03 09:40:23,448+0000 DEBUG swift FOREACH_IT_END line=18 thread=R-2x2
+2015-05-03 09:40:24,345+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 51867272, JVMThreads: 21
+2015-05-03 09:40:24,345+0000 INFO  RuntimeStats$ProgressTicker   Active:7  Finished successfully:4
+2015-05-03 09:40:24,844+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-0-2-1414225985086 status=17
+2015-05-03 09:40:24,845+0000 INFO  PutFileHandler Handler(tag: 99, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/s/bash-s7nmebzl/wrapper.log
+2015-05-03 09:40:24,845+0000 INFO  PutFileHandler Handler(tag: 99, PUT) destination: file://localhost/run013/wordcount-run013.d/bash-s7nmebzl.info
+2015-05-03 09:40:24,845+0000 INFO  PutFileHandler Handler(tag: 100, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/s/bash-s7nmebzl/output/sim_0.log
+2015-05-03 09:40:24,845+0000 INFO  PutFileHandler Handler(tag: 100, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_0.log
+2015-05-03 09:40:24,845+0000 INFO  PutFileHandler Handler(tag: 99, PUT) Transfer done
+2015-05-03 09:40:24,845+0000 INFO  PutFileHandler Handler(tag: 101, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/s/bash-s7nmebzl/output/sim_0.out
+2015-05-03 09:40:24,845+0000 INFO  PutFileHandler Handler(tag: 101, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_0.out
+2015-05-03 09:40:24,845+0000 INFO  PutFileHandler Handler(tag: 100, PUT) Transfer done
+2015-05-03 09:40:25,173+0000 INFO  PutFileHandler Handler(tag: 101, PUT) Transfer done
+2015-05-03 09:40:25,259+0000 INFO  LateBindingScheduler jobs queued: 0
+2015-05-03 09:40:25,259+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-0-2-1414225985086 status=7
+2015-05-03 09:40:25,259+0000 DEBUG swift JOB_END jobid=bash-s7nmebzl
+2015-05-03 09:40:25,260+0000 INFO  swift END_SUCCESS thread=R-2-0-2 tr=bash
+2015-05-03 09:40:25,260+0000 DEBUG swift PROCEDURE_END line=3 thread=R-2-0-2 name=count_words
+2015-05-03 09:40:25,260+0000 INFO  SwiftFunction Cleaning wc_log:file = <FILE> - Closed
+2015-05-03 09:40:25,260+0000 INFO  SwiftFunction Cleaning wc_out:file = <FILE> - Closed
+2015-05-03 09:40:25,260+0000 DEBUG swift FOREACH_IT_END line=18 thread=R-2-0
+2015-05-03 09:40:25,345+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106430464, UsedHeap: 65934632, JVMThreads: 21
+2015-05-03 09:40:25,345+0000 INFO  RuntimeStats$ProgressTicker   Active:6  Finished successfully:5
+2015-05-03 09:40:25,447+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-10-2-1414225985078 status=17
+2015-05-03 09:40:25,447+0000 INFO  PutFileHandler Handler(tag: 104, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/0/bash-08nmebzl/wrapper.log
+2015-05-03 09:40:25,447+0000 INFO  PutFileHandler Handler(tag: 104, PUT) destination: file://localhost/run013/wordcount-run013.d/bash-08nmebzl.info
+2015-05-03 09:40:25,448+0000 INFO  PutFileHandler Handler(tag: 105, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/0/bash-08nmebzl/output/sim_10.log
+2015-05-03 09:40:25,448+0000 INFO  PutFileHandler Handler(tag: 105, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_10.log
+2015-05-03 09:40:25,448+0000 INFO  PutFileHandler Handler(tag: 106, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/0/bash-08nmebzl/output/sim_10.out
+2015-05-03 09:40:25,448+0000 INFO  PutFileHandler Handler(tag: 106, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_10.out
+2015-05-03 09:40:25,448+0000 INFO  PutFileHandler Handler(tag: 104, PUT) Transfer done
+2015-05-03 09:40:25,448+0000 INFO  PutFileHandler Handler(tag: 105, PUT) Transfer done
+2015-05-03 09:40:25,757+0000 INFO  PutFileHandler Handler(tag: 106, PUT) Transfer done
+2015-05-03 09:40:25,843+0000 INFO  LateBindingScheduler jobs queued: 0
+2015-05-03 09:40:25,843+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-10-2-1414225985078 status=7
+2015-05-03 09:40:25,843+0000 DEBUG swift JOB_END jobid=bash-08nmebzl
+2015-05-03 09:40:25,843+0000 INFO  swift END_SUCCESS thread=R-2-10-2 tr=bash
+2015-05-03 09:40:25,844+0000 DEBUG swift PROCEDURE_END line=3 thread=R-2-10-2 name=count_words
+2015-05-03 09:40:25,844+0000 INFO  SwiftFunction Cleaning wc_log:file = <FILE> - Closed
+2015-05-03 09:40:25,844+0000 INFO  SwiftFunction Cleaning wc_out:file = <FILE> - Closed
+2015-05-03 09:40:25,844+0000 DEBUG swift FOREACH_IT_END line=18 thread=R-2-10
+2015-05-03 09:40:26,345+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 103284736, UsedHeap: 17612056, JVMThreads: 21
+2015-05-03 09:40:26,346+0000 INFO  RuntimeStats$ProgressTicker   Active:5  Finished successfully:6
+2015-05-03 09:40:27,346+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 103284736, UsedHeap: 17612056, JVMThreads: 21
+2015-05-03 09:40:28,330+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-6-2-1414225985085 status=17
+2015-05-03 09:40:28,331+0000 INFO  PutFileHandler Handler(tag: 109, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/v/bash-v7nmebzl/wrapper.log
+2015-05-03 09:40:28,331+0000 INFO  PutFileHandler Handler(tag: 109, PUT) destination: file://localhost/run013/wordcount-run013.d/bash-v7nmebzl.info
+2015-05-03 09:40:28,331+0000 INFO  PutFileHandler Handler(tag: 110, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/v/bash-v7nmebzl/output/sim_6.out
+2015-05-03 09:40:28,331+0000 INFO  PutFileHandler Handler(tag: 110, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_6.out
+2015-05-03 09:40:28,331+0000 INFO  PutFileHandler Handler(tag: 109, PUT) Transfer done
+2015-05-03 09:40:28,346+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 103284736, UsedHeap: 17963672, JVMThreads: 21
+2015-05-03 09:40:28,346+0000 INFO  RuntimeStats$ProgressTicker   Active:4  Stage out:1  Finished successfully:6
+2015-05-03 09:40:28,651+0000 INFO  PutFileHandler Handler(tag: 111, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/v/bash-v7nmebzl/output/sim_6.log
+2015-05-03 09:40:28,651+0000 INFO  PutFileHandler Handler(tag: 111, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_6.log
+2015-05-03 09:40:28,654+0000 INFO  PutFileHandler Handler(tag: 110, PUT) Transfer done
+2015-05-03 09:40:28,654+0000 INFO  PutFileHandler Handler(tag: 111, PUT) Transfer done
+2015-05-03 09:40:28,743+0000 INFO  LateBindingScheduler jobs queued: 0
+2015-05-03 09:40:28,743+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-6-2-1414225985085 status=7
+2015-05-03 09:40:28,743+0000 DEBUG swift JOB_END jobid=bash-v7nmebzl
+2015-05-03 09:40:28,744+0000 INFO  swift END_SUCCESS thread=R-2-6-2 tr=bash
+2015-05-03 09:40:28,744+0000 DEBUG swift PROCEDURE_END line=3 thread=R-2-6-2 name=count_words
+2015-05-03 09:40:28,744+0000 INFO  SwiftFunction Cleaning wc_log:file = <FILE> - Closed
+2015-05-03 09:40:28,744+0000 INFO  SwiftFunction Cleaning wc_out:file = <FILE> - Closed
+2015-05-03 09:40:28,744+0000 DEBUG swift FOREACH_IT_END line=18 thread=R-2-6
+2015-05-03 09:40:29,346+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 103284736, UsedHeap: 32334888, JVMThreads: 21
+2015-05-03 09:40:29,347+0000 INFO  RuntimeStats$ProgressTicker   Active:4  Finished successfully:7
+2015-05-03 09:40:29,699+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-3-2-1414225985084 status=17
+2015-05-03 09:40:29,700+0000 INFO  PutFileHandler Handler(tag: 114, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/1/bash-18nmebzl/output/sim_3.log
+2015-05-03 09:40:29,700+0000 INFO  PutFileHandler Handler(tag: 114, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_3.log
+2015-05-03 09:40:29,700+0000 INFO  PutFileHandler Handler(tag: 115, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/1/bash-18nmebzl/wrapper.log
+2015-05-03 09:40:29,700+0000 INFO  PutFileHandler Handler(tag: 115, PUT) destination: file://localhost/run013/wordcount-run013.d/bash-18nmebzl.info
+2015-05-03 09:40:29,700+0000 INFO  PutFileHandler Handler(tag: 116, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/1/bash-18nmebzl/output/sim_3.out
+2015-05-03 09:40:29,700+0000 INFO  PutFileHandler Handler(tag: 116, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_3.out
+2015-05-03 09:40:29,701+0000 INFO  PutFileHandler Handler(tag: 114, PUT) Transfer done
+2015-05-03 09:40:29,701+0000 INFO  PutFileHandler Handler(tag: 115, PUT) Transfer done
+2015-05-03 09:40:30,037+0000 INFO  PutFileHandler Handler(tag: 116, PUT) Transfer done
+2015-05-03 09:40:30,052+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-7-2-1414225985071 status=17
+2015-05-03 09:40:30,053+0000 INFO  PutFileHandler Handler(tag: 118, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/x/bash-x7nmebzl/wrapper.log
+2015-05-03 09:40:30,053+0000 INFO  PutFileHandler Handler(tag: 118, PUT) destination: file://localhost/run013/wordcount-run013.d/bash-x7nmebzl.info
+2015-05-03 09:40:30,054+0000 INFO  PutFileHandler Handler(tag: 119, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/x/bash-x7nmebzl/output/sim_7.out
+2015-05-03 09:40:30,054+0000 INFO  PutFileHandler Handler(tag: 119, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_7.out
+2015-05-03 09:40:30,054+0000 INFO  PutFileHandler Handler(tag: 118, PUT) Transfer done
+2015-05-03 09:40:30,076+0000 INFO  LateBindingScheduler jobs queued: 0
+2015-05-03 09:40:30,077+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-3-2-1414225985084 status=7
+2015-05-03 09:40:30,077+0000 DEBUG swift JOB_END jobid=bash-18nmebzl
+2015-05-03 09:40:30,078+0000 INFO  swift END_SUCCESS thread=R-2-3-2 tr=bash
+2015-05-03 09:40:30,078+0000 DEBUG swift PROCEDURE_END line=3 thread=R-2-3-2 name=count_words
+2015-05-03 09:40:30,078+0000 INFO  SwiftFunction Cleaning wc_log:file = <FILE> - Closed
+2015-05-03 09:40:30,078+0000 INFO  SwiftFunction Cleaning wc_out:file = <FILE> - Closed
+2015-05-03 09:40:30,078+0000 DEBUG swift FOREACH_IT_END line=18 thread=R-2-3
+2015-05-03 09:40:30,267+0000 INFO  PutFileHandler Handler(tag: 121, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/x/bash-x7nmebzl/output/sim_7.log
+2015-05-03 09:40:30,267+0000 INFO  PutFileHandler Handler(tag: 121, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_7.log
+2015-05-03 09:40:30,269+0000 INFO  PutFileHandler Handler(tag: 119, PUT) Transfer done
+2015-05-03 09:40:30,269+0000 INFO  PutFileHandler Handler(tag: 121, PUT) Transfer done
+2015-05-03 09:40:30,347+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 103284736, UsedHeap: 57384120, JVMThreads: 21
+2015-05-03 09:40:30,347+0000 INFO  RuntimeStats$ProgressTicker   Active:2  Stage out:1  Finished successfully:8
+2015-05-03 09:40:30,355+0000 INFO  LateBindingScheduler jobs queued: 0
+2015-05-03 09:40:30,355+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-7-2-1414225985071 status=7
+2015-05-03 09:40:30,355+0000 DEBUG swift JOB_END jobid=bash-x7nmebzl
+2015-05-03 09:40:30,355+0000 INFO  swift END_SUCCESS thread=R-2-7-2 tr=bash
+2015-05-03 09:40:30,356+0000 DEBUG swift PROCEDURE_END line=3 thread=R-2-7-2 name=count_words
+2015-05-03 09:40:30,356+0000 INFO  SwiftFunction Cleaning wc_log:file = <FILE> - Closed
+2015-05-03 09:40:30,356+0000 INFO  SwiftFunction Cleaning wc_out:file = <FILE> - Closed
+2015-05-03 09:40:30,356+0000 DEBUG swift FOREACH_IT_END line=18 thread=R-2-7
+2015-05-03 09:40:31,347+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 103284736, UsedHeap: 57506056, JVMThreads: 21
+2015-05-03 09:40:31,348+0000 INFO  RuntimeStats$ProgressTicker   Active:2  Finished successfully:9
+2015-05-03 09:40:31,467+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-5-2-1414225985082 status=17
+2015-05-03 09:40:32,115+0000 INFO  PutFileHandler Handler(tag: 124, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/3/bash-38nmebzl/output/sim_5.out
+2015-05-03 09:40:32,116+0000 INFO  PutFileHandler Handler(tag: 124, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_5.out
+2015-05-03 09:40:32,331+0000 INFO  PutFileHandler Handler(tag: 125, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/3/bash-38nmebzl/output/sim_5.log
+2015-05-03 09:40:32,331+0000 INFO  PutFileHandler Handler(tag: 125, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_5.log
+2015-05-03 09:40:32,331+0000 INFO  PutFileHandler Handler(tag: 126, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/3/bash-38nmebzl/wrapper.log
+2015-05-03 09:40:32,332+0000 INFO  PutFileHandler Handler(tag: 126, PUT) destination: file://localhost/run013/wordcount-run013.d/bash-38nmebzl.info
+2015-05-03 09:40:32,333+0000 INFO  PutFileHandler Handler(tag: 124, PUT) Transfer done
+2015-05-03 09:40:32,333+0000 INFO  PutFileHandler Handler(tag: 125, PUT) Transfer done
+2015-05-03 09:40:32,333+0000 INFO  PutFileHandler Handler(tag: 126, PUT) Transfer done
+2015-05-03 09:40:32,348+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 103284736, UsedHeap: 65599640, JVMThreads: 21
+2015-05-03 09:40:32,348+0000 INFO  RuntimeStats$ProgressTicker   Active:1  Stage out:1  Finished successfully:9
+2015-05-03 09:40:32,391+0000 INFO  LateBindingScheduler jobs queued: 0
+2015-05-03 09:40:32,391+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-5-2-1414225985082 status=7
+2015-05-03 09:40:32,391+0000 DEBUG swift JOB_END jobid=bash-38nmebzl
+2015-05-03 09:40:32,392+0000 INFO  swift END_SUCCESS thread=R-2-5-2 tr=bash
+2015-05-03 09:40:32,392+0000 DEBUG swift PROCEDURE_END line=3 thread=R-2-5-2 name=count_words
+2015-05-03 09:40:32,392+0000 INFO  SwiftFunction Cleaning wc_log:file = <FILE> - Closed
+2015-05-03 09:40:32,392+0000 INFO  SwiftFunction Cleaning wc_out:file = <FILE> - Closed
+2015-05-03 09:40:32,392+0000 DEBUG swift FOREACH_IT_END line=18 thread=R-2-5
+2015-05-03 09:40:33,348+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 103284736, UsedHeap: 65599640, JVMThreads: 21
+2015-05-03 09:40:33,348+0000 INFO  RuntimeStats$ProgressTicker   Active:1  Finished successfully:10
+2015-05-03 09:40:34,015+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-1-2-1414225985074 status=17
+2015-05-03 09:40:34,349+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 103284736, UsedHeap: 65599640, JVMThreads: 21
+2015-05-03 09:40:34,349+0000 INFO  RuntimeStats$ProgressTicker   Stage out:1  Finished successfully:10
+2015-05-03 09:40:34,639+0000 INFO  PutFileHandler Handler(tag: 129, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/t/bash-t7nmebzl/output/sim_1.out
+2015-05-03 09:40:34,639+0000 INFO  PutFileHandler Handler(tag: 129, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_1.out
+2015-05-03 09:40:34,897+0000 INFO  PutFileHandler Handler(tag: 130, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/t/bash-t7nmebzl/output/sim_1.log
+2015-05-03 09:40:34,897+0000 INFO  PutFileHandler Handler(tag: 130, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_1.log
+2015-05-03 09:40:34,897+0000 INFO  PutFileHandler Handler(tag: 131, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/t/bash-t7nmebzl/wrapper.log
+2015-05-03 09:40:34,897+0000 INFO  PutFileHandler Handler(tag: 131, PUT) destination: file://localhost/run013/wordcount-run013.d/bash-t7nmebzl.info
+2015-05-03 09:40:34,899+0000 INFO  PutFileHandler Handler(tag: 129, PUT) Transfer done
+2015-05-03 09:40:34,899+0000 INFO  PutFileHandler Handler(tag: 130, PUT) Transfer done
+2015-05-03 09:40:34,900+0000 INFO  PutFileHandler Handler(tag: 131, PUT) Transfer done
+2015-05-03 09:40:34,947+0000 INFO  LateBindingScheduler jobs queued: 0
+2015-05-03 09:40:34,947+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-2-1-2-1414225985074 status=7
+2015-05-03 09:40:34,947+0000 DEBUG swift JOB_END jobid=bash-t7nmebzl
+2015-05-03 09:40:34,948+0000 INFO  swift END_SUCCESS thread=R-2-1-2 tr=bash
+2015-05-03 09:40:34,948+0000 DEBUG swift PROCEDURE_END line=3 thread=R-2-1-2 name=count_words
+2015-05-03 09:40:34,948+0000 INFO  SwiftFunction Cleaning wc_log:file = <FILE> - Closed
+2015-05-03 09:40:34,948+0000 INFO  SwiftFunction Cleaning wc_out:file = <FILE> - Closed
+2015-05-03 09:40:34,948+0000 DEBUG swift FOREACH_IT_END line=18 thread=R-2-1
+2015-05-03 09:40:34,949+0000 DEBUG swift THREAD_ASSOCIATION jobid=bash-48nmebzl thread=R-3 host=cloud-static replicationGroup=null
+2015-05-03 09:40:34,951+0000 DEBUG swift JOB_START jobid=bash-48nmebzl tr=bash arguments=[merge.sh, output/sim_0.out, output/sim_1.out, output/sim_2.out, output/sim_3.out, output/sim_4.out, output/sim_5.out, output/sim_6.out, output/sim_7.out, output/sim_8.out, output/sim_9.out, output/sim_10.out] tmpdir=wordcount-run013/jobs/4/bash-48nmebzl host=cloud-static
+2015-05-03 09:40:34,952+0000 INFO  Execute JOB_TASK jobid=bash-48nmebzl taskid=urn:R-3-1414225985089 exec=/bin/bash dir=wordcount-run013/jobs/4/bash-48nmebzl args=_swiftwrap.staging -e bash -out output/final_output.out -err output/final_output.log -i -d output -if output/sim_3.out|output/sim_9.out|output/sim_1.out|output/sim_0.out|output/sim_8.out|output/sim_7.out|output/sim_2.out|output/sim_10.out|output/sim_6.out|output/sim_5.out|merge.sh|output/sim_4.out -of output/final_output.out|output/final_output.log -cf  -cdmfile  -status provider -a merge.sh output/sim_0.out output/sim_1.out output/sim_2.out output/sim_3.out output/sim_4.out output/sim_5.out output/sim_6.out output/sim_7.out output/sim_8.out output/sim_9.out output/sim_10.out
+2015-05-03 09:40:34,952+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-3-1414225985089 status=8
+2015-05-03 09:40:35,043+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-3-1414225985089 status=1
+2015-05-03 09:40:35,044+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-3-1414225985089 status=16 workerid=ip-172-31-28-214:000000
+2015-05-03 09:40:35,044+0000 INFO  GetFileHandler Handler(tag: 136, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_4.out
+2015-05-03 09:40:35,044+0000 INFO  GetFileHandler Handler(tag: 136, GET) reader: LR-Handler(tag: 136, GET)
+2015-05-03 09:40:35,044+0000 INFO  GetFileHandler Handler(tag: 136, GET) sending length: 5415613, 374494187
+2015-05-03 09:40:35,044+0000 INFO  ReadBuffer RB-LR-Handler(tag: 136, GET) will ask for 8 buffers for a size of 5415613
+2015-05-03 09:40:35,044+0000 INFO  ReadBuffer RB-LR-Handler(tag: 136, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:40:35,044+0000 INFO  LocalIOProvider LR-Handler(tag: 136, GET) rbuf: RB-LR-Handler(tag: 136, GET)
+2015-05-03 09:40:35,072+0000 INFO  GetFileHandler Handler(tag: 136, GET) unregistering (last)
+2015-05-03 09:40:35,073+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:40:35,349+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 17906568, JVMThreads: 21
+2015-05-03 09:40:35,349+0000 INFO  RuntimeStats$ProgressTicker   Stage in:1  Finished successfully:11
+2015-05-03 09:40:35,491+0000 INFO  GetFileHandler Handler(tag: 137, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_1.out
+2015-05-03 09:40:35,491+0000 INFO  GetFileHandler Handler(tag: 137, GET) reader: LR-Handler(tag: 137, GET)
+2015-05-03 09:40:35,491+0000 INFO  GetFileHandler Handler(tag: 137, GET) sending length: 10995184, 506385516
+2015-05-03 09:40:35,491+0000 INFO  ReadBuffer RB-LR-Handler(tag: 137, GET) will ask for 8 buffers for a size of 10995184
+2015-05-03 09:40:35,491+0000 INFO  ReadBuffer RB-LR-Handler(tag: 137, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:40:35,491+0000 INFO  LocalIOProvider LR-Handler(tag: 137, GET) rbuf: RB-LR-Handler(tag: 137, GET)
+2015-05-03 09:40:35,517+0000 INFO  GetFileHandler Handler(tag: 137, GET) suspending
+2015-05-03 09:40:36,187+0000 INFO  GetFileHandler Handler(tag: 137, GET) resuming
+2015-05-03 09:40:36,189+0000 INFO  GetFileHandler Handler(tag: 137, GET) unregistering (last)
+2015-05-03 09:40:36,189+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:40:36,335+0000 INFO  GetFileHandler Handler(tag: 138, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_8.out
+2015-05-03 09:40:36,335+0000 INFO  GetFileHandler Handler(tag: 138, GET) reader: LR-Handler(tag: 138, GET)
+2015-05-03 09:40:36,335+0000 INFO  GetFileHandler Handler(tag: 138, GET) sending length: 2301120, 2140603061
+2015-05-03 09:40:36,335+0000 INFO  ReadBuffer RB-LR-Handler(tag: 138, GET) will ask for 8 buffers for a size of 2301120
+2015-05-03 09:40:36,335+0000 INFO  ReadBuffer RB-LR-Handler(tag: 138, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:40:36,335+0000 INFO  LocalIOProvider LR-Handler(tag: 138, GET) rbuf: RB-LR-Handler(tag: 138, GET)
+2015-05-03 09:40:36,338+0000 INFO  GetFileHandler Handler(tag: 138, GET) unregistering (last)
+2015-05-03 09:40:36,338+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:40:36,349+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 18844816, JVMThreads: 21
+2015-05-03 09:40:36,555+0000 INFO  GetFileHandler Handler(tag: 139, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_5.out
+2015-05-03 09:40:36,555+0000 INFO  GetFileHandler Handler(tag: 139, GET) reader: LR-Handler(tag: 139, GET)
+2015-05-03 09:40:36,555+0000 INFO  GetFileHandler Handler(tag: 139, GET) sending length: 8011579, 694473366
+2015-05-03 09:40:36,555+0000 INFO  ReadBuffer RB-LR-Handler(tag: 139, GET) will ask for 8 buffers for a size of 8011579
+2015-05-03 09:40:36,555+0000 INFO  ReadBuffer RB-LR-Handler(tag: 139, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:40:36,555+0000 INFO  LocalIOProvider LR-Handler(tag: 139, GET) rbuf: RB-LR-Handler(tag: 139, GET)
+2015-05-03 09:40:36,576+0000 INFO  GetFileHandler Handler(tag: 139, GET) unregistering (last)
+2015-05-03 09:40:36,576+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:40:37,175+0000 INFO  GetFileHandler Handler(tag: 140, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_7.out
+2015-05-03 09:40:37,175+0000 INFO  GetFileHandler Handler(tag: 140, GET) reader: LR-Handler(tag: 140, GET)
+2015-05-03 09:40:37,175+0000 INFO  GetFileHandler Handler(tag: 140, GET) sending length: 9432148, 623093119
+2015-05-03 09:40:37,175+0000 INFO  ReadBuffer RB-LR-Handler(tag: 140, GET) will ask for 8 buffers for a size of 9432148
+2015-05-03 09:40:37,175+0000 INFO  ReadBuffer RB-LR-Handler(tag: 140, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:40:37,175+0000 INFO  LocalIOProvider LR-Handler(tag: 140, GET) rbuf: RB-LR-Handler(tag: 140, GET)
+2015-05-03 09:40:37,212+0000 INFO  HeartBeatCommand http://127.0.0.1:50010 up latency: 3ms, rtt: 26ms
+2015-05-03 09:40:37,212+0000 INFO  GetFileHandler Handler(tag: 140, GET) unregistering (last)
+2015-05-03 09:40:37,212+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:40:37,212+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:40:37,271+0000 INFO  AbstractCoasterChannel Got signal for unregistered tag (140): SUSPEND
+2015-05-03 09:40:37,271+0000 INFO  AbstractCoasterChannel Registered handlers: []
+2015-05-03 09:40:37,350+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 19873264, JVMThreads: 21
+2015-05-03 09:40:37,853+0000 INFO  GetFileHandler Handler(tag: 141, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_6.out
+2015-05-03 09:40:37,854+0000 INFO  GetFileHandler Handler(tag: 141, GET) reader: LR-Handler(tag: 141, GET)
+2015-05-03 09:40:37,854+0000 INFO  GetFileHandler Handler(tag: 141, GET) sending length: 14039047, 1301667625
+2015-05-03 09:40:37,854+0000 INFO  ReadBuffer RB-LR-Handler(tag: 141, GET) will ask for 8 buffers for a size of 14039047
+2015-05-03 09:40:37,854+0000 INFO  ReadBuffer RB-LR-Handler(tag: 141, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:40:37,854+0000 INFO  LocalIOProvider LR-Handler(tag: 141, GET) rbuf: RB-LR-Handler(tag: 141, GET)
+2015-05-03 09:40:37,890+0000 INFO  GetFileHandler Handler(tag: 141, GET) suspending
+2015-05-03 09:40:38,350+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 20385200, JVMThreads: 21
+2015-05-03 09:40:38,851+0000 INFO  GetFileHandler Handler(tag: 141, GET) resuming
+2015-05-03 09:40:38,851+0000 INFO  GetFileHandler Handler(tag: 141, GET) unregistering (last)
+2015-05-03 09:40:38,851+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:40:38,919+0000 INFO  GetFileHandler Handler(tag: 142, GET) request complete; src=file://localhost//usr/local/bin/swift-trunk/libexec/_swiftwrap.staging
+2015-05-03 09:40:38,919+0000 INFO  GetFileHandler Handler(tag: 142, GET) reader: LR-Handler(tag: 142, GET)
+2015-05-03 09:40:38,919+0000 INFO  GetFileHandler Handler(tag: 142, GET) sending length: 6253, 656463011
+2015-05-03 09:40:38,919+0000 INFO  ReadBuffer RB-LR-Handler(tag: 142, GET) will ask for 1 buffers for a size of 6253
+2015-05-03 09:40:38,919+0000 INFO  ReadBuffer RB-LR-Handler(tag: 142, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:40:38,919+0000 INFO  LocalIOProvider LR-Handler(tag: 142, GET) rbuf: RB-LR-Handler(tag: 142, GET)
+2015-05-03 09:40:38,919+0000 INFO  GetFileHandler Handler(tag: 142, GET) unregistering (last)
+2015-05-03 09:40:38,920+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:40:39,003+0000 INFO  GetFileHandler Handler(tag: 143, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_9.out
+2015-05-03 09:40:39,003+0000 INFO  GetFileHandler Handler(tag: 143, GET) reader: LR-Handler(tag: 143, GET)
+2015-05-03 09:40:39,003+0000 INFO  GetFileHandler Handler(tag: 143, GET) sending length: 8488665, 1790452582
+2015-05-03 09:40:39,003+0000 INFO  ReadBuffer RB-LR-Handler(tag: 143, GET) will ask for 8 buffers for a size of 8488665
+2015-05-03 09:40:39,003+0000 INFO  ReadBuffer RB-LR-Handler(tag: 143, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:40:39,003+0000 INFO  LocalIOProvider LR-Handler(tag: 143, GET) rbuf: RB-LR-Handler(tag: 143, GET)
+2015-05-03 09:40:39,030+0000 INFO  GetFileHandler Handler(tag: 143, GET) unregistering (last)
+2015-05-03 09:40:39,030+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:40:39,350+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 20788760, JVMThreads: 21
+2015-05-03 09:40:39,671+0000 INFO  GetFileHandler Handler(tag: 144, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_2.out
+2015-05-03 09:40:39,671+0000 INFO  GetFileHandler Handler(tag: 144, GET) reader: LR-Handler(tag: 144, GET)
+2015-05-03 09:40:39,671+0000 INFO  GetFileHandler Handler(tag: 144, GET) sending length: 10396713, 1614403352
+2015-05-03 09:40:39,671+0000 INFO  ReadBuffer RB-LR-Handler(tag: 144, GET) will ask for 8 buffers for a size of 10396713
+2015-05-03 09:40:39,671+0000 INFO  ReadBuffer RB-LR-Handler(tag: 144, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:40:39,671+0000 INFO  LocalIOProvider LR-Handler(tag: 144, GET) rbuf: RB-LR-Handler(tag: 144, GET)
+2015-05-03 09:40:39,708+0000 INFO  GetFileHandler Handler(tag: 144, GET) unregistering (last)
+2015-05-03 09:40:39,709+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:40:39,709+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:40:39,709+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:40:39,709+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:40:39,709+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:40:39,709+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:40:39,711+0000 INFO  AbstractCoasterChannel Got signal for unregistered tag (144): SUSPEND
+2015-05-03 09:40:39,711+0000 INFO  AbstractCoasterChannel Registered handlers: []
+2015-05-03 09:40:40,350+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 21349832, JVMThreads: 21
+2015-05-03 09:40:40,418+0000 INFO  GetFileHandler Handler(tag: 145, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_0.out
+2015-05-03 09:40:40,419+0000 INFO  GetFileHandler Handler(tag: 145, GET) reader: LR-Handler(tag: 145, GET)
+2015-05-03 09:40:40,419+0000 INFO  GetFileHandler Handler(tag: 145, GET) sending length: 14050319, 1254514978
+2015-05-03 09:40:40,419+0000 INFO  ReadBuffer RB-LR-Handler(tag: 145, GET) will ask for 8 buffers for a size of 14050319
+2015-05-03 09:40:40,419+0000 INFO  ReadBuffer RB-LR-Handler(tag: 145, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:40:40,419+0000 INFO  LocalIOProvider LR-Handler(tag: 145, GET) rbuf: RB-LR-Handler(tag: 145, GET)
+2015-05-03 09:40:40,470+0000 INFO  GetFileHandler Handler(tag: 145, GET) suspending
+2015-05-03 09:40:41,351+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 21687808, JVMThreads: 21
+2015-05-03 09:40:41,359+0000 INFO  GetFileHandler Handler(tag: 145, GET) resuming
+2015-05-03 09:40:41,360+0000 INFO  GetFileHandler Handler(tag: 145, GET) unregistering (last)
+2015-05-03 09:40:41,360+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:40:41,519+0000 INFO  GetFileHandler Handler(tag: 146, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/merge.sh
+2015-05-03 09:40:41,519+0000 INFO  GetFileHandler Handler(tag: 146, GET) reader: LR-Handler(tag: 146, GET)
+2015-05-03 09:40:41,519+0000 INFO  GetFileHandler Handler(tag: 146, GET) sending length: 131, 133668358
+2015-05-03 09:40:41,519+0000 INFO  ReadBuffer RB-LR-Handler(tag: 146, GET) will ask for 1 buffers for a size of 131
+2015-05-03 09:40:41,519+0000 INFO  ReadBuffer RB-LR-Handler(tag: 146, GET) actual allocated buffers 1(0 queued)
+2015-05-03 09:40:41,519+0000 INFO  LocalIOProvider LR-Handler(tag: 146, GET) rbuf: RB-LR-Handler(tag: 146, GET)
+2015-05-03 09:40:41,520+0000 INFO  GetFileHandler Handler(tag: 146, GET) unregistering (last)
+2015-05-03 09:40:41,520+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 1 buffers
+2015-05-03 09:40:41,603+0000 INFO  GetFileHandler Handler(tag: 147, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_10.out
+2015-05-03 09:40:41,603+0000 INFO  GetFileHandler Handler(tag: 147, GET) reader: LR-Handler(tag: 147, GET)
+2015-05-03 09:40:41,603+0000 INFO  GetFileHandler Handler(tag: 147, GET) sending length: 12926154, 1763257653
+2015-05-03 09:40:41,603+0000 INFO  ReadBuffer RB-LR-Handler(tag: 147, GET) will ask for 8 buffers for a size of 12926154
+2015-05-03 09:40:41,603+0000 INFO  ReadBuffer RB-LR-Handler(tag: 147, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:40:41,603+0000 INFO  LocalIOProvider LR-Handler(tag: 147, GET) rbuf: RB-LR-Handler(tag: 147, GET)
+2015-05-03 09:40:41,653+0000 INFO  GetFileHandler Handler(tag: 147, GET) unregistering (last)
+2015-05-03 09:40:41,653+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:40:41,653+0000 INFO  NIOChannelReadBuffer Transfer done. De-allocating one unused buffer
+2015-05-03 09:40:41,695+0000 INFO  AbstractCoasterChannel Got signal for unregistered tag (147): SUSPEND
+2015-05-03 09:40:41,695+0000 INFO  AbstractCoasterChannel Registered handlers: []
+2015-05-03 09:40:42,351+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22347224, JVMThreads: 21
+2015-05-03 09:40:42,535+0000 INFO  GetFileHandler Handler(tag: 148, GET) request complete; src=file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/sim_3.out
+2015-05-03 09:40:42,535+0000 INFO  GetFileHandler Handler(tag: 148, GET) reader: LR-Handler(tag: 148, GET)
+2015-05-03 09:40:42,535+0000 INFO  GetFileHandler Handler(tag: 148, GET) sending length: 15471908, 1016927260
+2015-05-03 09:40:42,535+0000 INFO  ReadBuffer RB-LR-Handler(tag: 148, GET) will ask for 8 buffers for a size of 15471908
+2015-05-03 09:40:42,535+0000 INFO  ReadBuffer RB-LR-Handler(tag: 148, GET) actual allocated buffers 8(0 queued)
+2015-05-03 09:40:42,535+0000 INFO  LocalIOProvider LR-Handler(tag: 148, GET) rbuf: RB-LR-Handler(tag: 148, GET)
+2015-05-03 09:40:42,573+0000 INFO  GetFileHandler Handler(tag: 148, GET) suspending
+2015-05-03 09:40:43,259+0000 INFO  GetFileHandler Handler(tag: 148, GET) resuming
+2015-05-03 09:40:43,266+0000 INFO  GetFileHandler Handler(tag: 148, GET) unregistering (last)
+2015-05-03 09:40:43,266+0000 INFO  ReadBuffer RB-LR-Handler(tag: -1, GET) de-allocating 8 buffers
+2015-05-03 09:40:43,351+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22891880, JVMThreads: 21
+2015-05-03 09:40:43,687+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-3-1414225985089 status=2 workerid=ip-172-31-28-214:000000
+2015-05-03 09:40:44,351+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22891880, JVMThreads: 21
+2015-05-03 09:40:44,351+0000 INFO  RuntimeStats$ProgressTicker   Active:1  Finished successfully:11
+2015-05-03 09:40:45,352+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22891880, JVMThreads: 21
+2015-05-03 09:40:46,352+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22891880, JVMThreads: 21
+2015-05-03 09:40:47,352+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22891880, JVMThreads: 21
+2015-05-03 09:40:48,352+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22891880, JVMThreads: 21
+2015-05-03 09:40:49,353+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22891880, JVMThreads: 21
+2015-05-03 09:40:50,353+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22891880, JVMThreads: 21
+2015-05-03 09:40:51,353+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22891880, JVMThreads: 21
+2015-05-03 09:40:52,353+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22891880, JVMThreads: 21
+2015-05-03 09:40:53,354+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22891880, JVMThreads: 21
+2015-05-03 09:40:54,354+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22891880, JVMThreads: 21
+2015-05-03 09:40:55,354+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22891880, JVMThreads: 21
+2015-05-03 09:40:56,354+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 22891880, JVMThreads: 21
+2015-05-03 09:40:56,435+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-3-1414225985089 status=17
+2015-05-03 09:40:56,435+0000 INFO  PutFileHandler Handler(tag: 151, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/4/bash-48nmebzl/output/final_output.log
+2015-05-03 09:40:56,435+0000 INFO  PutFileHandler Handler(tag: 151, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/final_output.log
+2015-05-03 09:40:56,436+0000 INFO  PutFileHandler Handler(tag: 152, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/4/bash-48nmebzl/output/final_output.out
+2015-05-03 09:40:56,436+0000 INFO  PutFileHandler Handler(tag: 152, PUT) destination: file://localhost//home/ubuntu/data/swift-cloud-tutorial/wcount/output/final_output.out
+2015-05-03 09:40:56,437+0000 INFO  PutFileHandler Handler(tag: 151, PUT) Transfer done
+2015-05-03 09:40:57,355+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 100139008, UsedHeap: 71384312, JVMThreads: 21
+2015-05-03 09:40:57,355+0000 INFO  RuntimeStats$ProgressTicker   Stage out:1  Finished successfully:11
+2015-05-03 09:40:57,939+0000 INFO  PutFileHandler Handler(tag: 153, PUT) source: /tmp/swiftwork/wordcount-run013/jobs/4/bash-48nmebzl/wrapper.log
+2015-05-03 09:40:57,939+0000 INFO  PutFileHandler Handler(tag: 153, PUT) destination: file://localhost/run013/wordcount-run013.d/bash-48nmebzl.info
+2015-05-03 09:40:57,939+0000 INFO  PutFileHandler Handler(tag: 152, PUT) Transfer done
+2015-05-03 09:40:57,939+0000 INFO  PutFileHandler Handler(tag: 153, PUT) Transfer done
+2015-05-03 09:40:58,027+0000 INFO  LateBindingScheduler jobs queued: 0
+2015-05-03 09:40:58,027+0000 INFO  Execute TASK_STATUS_CHANGE taskid=urn:R-3-1414225985089 status=7
+2015-05-03 09:40:58,028+0000 DEBUG swift JOB_END jobid=bash-48nmebzl
+2015-05-03 09:40:58,028+0000 INFO  swift END_SUCCESS thread=R-3 tr=bash
+2015-05-03 09:40:58,028+0000 DEBUG swift PROCEDURE_END line=8 thread=R-3 name=merge
+2015-05-03 09:40:58,029+0000 INFO  RuntimeStats$ProgressTicker HeapMax: 954728448, CrtHeap: 106954752, UsedHeap: 42331280, JVMThreads: 21
+2015-05-03 09:40:58,029+0000 INFO  RuntimeStats$ProgressTicker   Finished successfully:12
+2015-05-03 09:40:58,048+0000 DEBUG swift Starting cleanups
+2015-05-03 09:40:58,048+0000 INFO  swift START cleanups=[]
+2015-05-03 09:40:58,049+0000 INFO  swift END cleanups=[]
+2015-05-03 09:40:58,049+0000 DEBUG swift Ending cleanups
+2015-05-03 09:40:58,049+0000 INFO  SwiftFunction Cleaning chunks:file[int] = {0=chunks[0]:file = <FILE> - Closed, 1=chunks[1]:file = <FILE> - Closed, 2=chunks[2]:file = <FILE> - Closed, 3=chunks[3]:file = <FILE> - Closed, 4=chunks[4]:file = <FILE> - Closed, 5=chunks[5]:file = <FILE> - Closed, 6=chunks[6]:file = <FILE> - Closed, 7=chunks[7]:file = <FILE> - Closed, 8=chunks[8]:file = <FILE> - Closed, 9=chunks[9]:file = <FILE> - Closed, 10=chunks[10]:file = <FILE> - Closed} - Closed
+2015-05-03 09:40:58,049+0000 INFO  SwiftFunction Cleaning merge_script:file = <FILE> - Closed
+2015-05-03 09:40:58,049+0000 INFO  SwiftFunction Cleaning wordcount_script:file = <FILE> - Closed
+2015-05-03 09:40:58,049+0000 INFO  SwiftFunction Cleaning merge_log:file = <FILE> - Closed
+2015-05-03 09:40:58,049+0000 INFO  SwiftFunction Cleaning wcounter:file[int] = {0=wcounter[0]:file = <FILE> - Closed, 1=wcounter[1]:file = <FILE> - Closed, 2=wcounter[2]:file = <FILE> - Closed, 3=wcounter[3]:file = <FILE> - Closed, 4=wcounter[4]:file = <FILE> - Closed, 5=wcounter[5]:file = <FILE> - Closed, 6=wcounter[6]:file = <FILE> - Closed, 7=wcounter[7]:file = <FILE> - Closed, 8=wcounter[8]:file = <FILE> - Closed, 9=wcounter[9]:file = <FILE> - Closed, 10=wcounter[10]:file = <FILE> - Closed} - Closed
+2015-05-03 09:40:58,049+0000 INFO  SwiftFunction Cleaning merge_out:file = <FILE> - Closed
+2015-05-03 09:40:58,051+0000 INFO  Loader Swift finished with no errors

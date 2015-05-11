@@ -1,0 +1,41 @@
+Swift trunk git-rev: 2d334140f2c288e5aeb3d354de0ecda35b4b3aac heads/master 6130 (modified locally)
+RunID: run013
+Progress: Sat, 02 May 2015 09:25:07+0000
+Progress: Sat, 02 May 2015 09:25:08+0000  Stage in:11
+Progress: Sat, 02 May 2015 09:25:38+0000  Stage in:11
+Progress: Sat, 02 May 2015 09:26:08+0000  Stage in:11
+Progress: Sat, 02 May 2015 09:26:20+0000  Stage in:10  Active:1
+Progress: Sat, 02 May 2015 09:26:50+0000  Stage in:10  Active:1
+Progress: Sat, 02 May 2015 09:27:20+0000  Stage in:10  Active:1
+Progress: Sat, 02 May 2015 09:27:50+0000  Stage in:10  Active:1
+Progress: Sat, 02 May 2015 09:27:56+0000  Stage in:9  Active:2
+Progress: Sat, 02 May 2015 09:27:58+0000  Stage in:8  Active:3
+Progress: Sat, 02 May 2015 09:27:59+0000  Stage in:2  Active:9
+Progress: Sat, 02 May 2015 09:28:00+0000  Stage in:1  Active:10
+Progress: Sat, 02 May 2015 09:28:01+0000  Active:10  Finished successfully:1
+Progress: Sat, 02 May 2015 09:28:31+0000  Active:10  Finished successfully:1
+Progress: Sat, 02 May 2015 09:29:01+0000  Active:10  Finished successfully:1
+Progress: Sat, 02 May 2015 09:29:31+0000  Active:10  Finished successfully:1
+Progress: Sat, 02 May 2015 09:30:01+0000  Active:10  Finished successfully:1
+Progress: Sat, 02 May 2015 09:30:31+0000  Active:10  Finished successfully:1
+Progress: Sat, 02 May 2015 09:30:01+0000  Active:10  Finished successfully:1
+Progress: Sat, 02 May 2015 09:30:31+0000  Active:10  Finished successfully:1
+Progress: Sat, 02 May 2015 09:31:01+0000  Active:10  Finished successfully:1
+Progress: Sat, 02 May 2015 09:31:18+0000  Active:9  Stage out:1  Finished successfully:1
+Progress: Sat, 02 May 2015 09:31:19+0000  Active:9  Finished successfully:2
+Progress: Sat, 02 May 2015 09:31:22+0000  Active:8  Stage out:1  Finished successfully:2
+Progress: Sat, 02 May 2015 09:31:23+0000  Active:7  Stage out:1  Finished successfully:3
+Progress: Sat, 02 May 2015 09:31:24+0000  Active:7  Finished successfully:4
+Progress: Sat, 02 May 2015 09:31:25+0000  Active:6  Finished successfully:5
+Progress: Sat, 02 May 2015 09:31:26+0000  Active:5  Finished successfully:6
+Progress: Sat, 02 May 2015 09:31:28+0000  Active:4  Stage out:1  Finished successfully:6
+Progress: Sat, 02 May 2015 09:31:29+0000  Active:4  Finished successfully:7
+Progress: Sat, 02 May 2015 09:31:30+0000  Active:2  Stage out:1  Finished successfully:8
+Progress: Sat, 02 May 2015 09:31:31+0000  Active:2  Finished successfully:9
+Progress: Sat, 02 May 2015 09:31:32+0000  Active:1  Stage out:1  Finished successfully:9
+Progress: Sat, 02 May 2015 09:31:33+0000  Active:1  Finished successfully:10
+Progress: Sat, 02 May 2015 09:31:34+0000  Stage out:1  Finished successfully:10
+Progress: Sat, 02 May 2015 09:31:35+0000  Stage in:1  Finished successfully:11
+Progress: Sat, 02 May 2015 09:31:44+0000  Active:1  Finished successfully:11
+Progress: Sat, 02 May 2015 09:31:57+0000  Stage out:1  Finished successfully:11
+Final status:Sat, 02 May 2015 09:31:58+0000  Finished successfully:12
